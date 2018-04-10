@@ -1,0 +1,165 @@
+unit uCardPermit;
+
+interface
+
+uses
+  System.SysUtils, System.Classes,Winapi.ActiveX,Data.Win.ADODB,DB;
+
+type
+  TdmCardPermit = class(TDataModule)
+  private
+    { Private declarations }
+  public
+    { Public declarations }
+    Function  CardDevicePermit(aCardNo,aDeviceSeq,aPermit:string) :Boolean;
+    procedure GroupDoorExistUpdatePermit(aGroupCode:string);
+    procedure GroupDoorNotExistInsertPermit(aGroupCode:string);
+    procedure GroupDoorPermitAdd(aGroupCode,aDoorSeq:string);
+    procedure GroupDoorPermitChange(aGroupCode:string);
+    procedure GroupDoorPermitDelete(aGroupCode,aDoorSeq:string);
+  end;
+
+var
+  dmCardPermit: TdmCardPermit;
+
+implementation
+
+uses
+  uCommonVariable,
+  uDataBase,
+  uDBFunction,
+  uDBInsert,
+  uDBUpdate;
+
+{%CLASSGROUP 'Vcl.Controls.TControl'}
+
+{$R *.dfm}
+
+{ TdmCardPermit }
+
+//카드 권한이 있는 그룹에 대해 업데이트
+function TdmCardPermit.CardDevicePermit(aCardNo, aDeviceSeq,
+  aPermit: string): Boolean;
+begin
+  if dmDBFunction.CheckTB_DEVICECARDNO_Key(aDeviceSeq,aCardNo) = 1 then
+  begin
+    dmDBUpdate.UpdateTB_DEVICECARDNO_FieldString(aDeviceSeq,aCardNo,'CP_PERMIT',aPermit);
+    dmDBUpdate.UpdateTB_DEVICECARDNO_FieldString(aDeviceSeq,aCardNo,'CA_SEND','N');
+  end else
+  begin
+    dmDBInsert.InsertIntoTB_DEVICECARDNO_Value(aDeviceSeq,aCardNo,aPermit,'N');
+  end;
+
+end;
+
+procedure TdmCardPermit.GroupDoorExistUpdatePermit(aGroupCode: string);
+var
+  stSql : string;
+begin
+  if G_nDBTYPE = MDB then
+  begin
+    stSql := ' Update TB_DEVICECARDNO as A ';
+    stSql := stSql + ' Inner Join ';
+    stSql := stSql + ' ( ';
+    stSql := stSql + ' select aa.CA_CARDNO,bb.DE_SEQ,bb.CP_PERMIT ';
+    stSql := stSql + ' From  ';
+    stSql := stSql + ' (select * from TB_CARD where CA_GROUPCODE = ' + aGroupCode + ' AND CA_GRADETYPE = 1) aa ';
+    stSql := stSql + ' Inner Join TB_CARDPERMITGROUP bb ';
+    stSql := stSql + ' ON (aa.GROUP_CODE = bb.GROUP_CODE) ';
+    stSql := stSql + ' AND (aa.CA_GROUPCODE = bb.CA_GROUPCODE ) ';
+    stSql := stSql + ' ) as B ';
+    stSql := stSql + ' ON  (a.CA_CARDNO = b.CA_CARDNO ) ';
+    stSql := stSql + ' AND (a.DE_SEQ = b.DE_SEQ ) ';
+    stSql := stSql + ' AND (a.CP_PERMIT <> b.CP_PERMIT) ';
+    stSql := stSql + ' Set ';
+    stSql := stSql + ' a.CP_PERMIT = b.CP_PERMIT , ';
+    stSql := stSql + ' a.CA_SEND = ''N'' ';
+  end else
+  begin
+    stSql := ' Update A Set ';
+    stSql := stSql + ' a.CP_PERMIT = b.CP_PERMIT ,';
+    stSql := stSql + ' a.CA_SEND = ''N'' ';
+    stSql := stSql + ' From TB_DEVICECARDNO A,';
+    stSql := stSql + ' ( select ';
+    stSql := stSql + ' aa.CA_CARDNO,bb.DE_SEQ,bb.CP_PERMIT';
+    stSql := stSql + ' From (select * from TB_CARD where CA_GROUPCODE = ' + aGroupCode + ' AND CA_GRADETYPE = 1) aa ';
+    stSql := stSql + ' Inner Join TB_CARDGROUPCODE bb ';
+    stSql := stSql + ' ON (aa.GROUP_CODE = bb.GROUP_CODE ';
+    stSql := stSql + ' AND aa.CA_GROUPCODE = bb.CA_GROUPCODE ) ';
+    stSql := stSql + ' ) B ';
+    stSql := stSql + ' WHERE a.CA_CARDNO = b.CA_CARDNO ';
+    stSql := stSql + ' AND a.DE_SEQ = b.DE_SEQ ';
+    stSql := stSql + ' AND a.CP_PERMIT <> b.CP_PERMIT ';
+  end;
+
+  dmDataBase.ProcessExecSQL(stSql);
+end;
+
+//카드 권한이 없는 그룹에 대해 Insert
+procedure TdmCardPermit.GroupDoorNotExistInsertPermit(aGroupCode: string);
+var
+  stSql : string;
+begin
+  stSql := ' Insert Into TB_DEVICECARDNO ( ';
+  stSql := stSql + ' GROUP_CODE,';
+  stSql := stSql + ' DE_SEQ,';
+  stSql := stSql + ' CA_CARDNO,';
+  stSql := stSql + ' CP_PERMIT,';
+  stSql := stSql + ' CA_SEND ) ';
+  stSql := stSql + ' Select ';
+  stSql := stSql + '''' + G_stGroupCode + ''',';
+  stSql := stSql + ' a.DE_SEQ,';
+  stSql := stSql + ' a.CA_CARDNO,';
+  stSql := stSql + ' a.CP_PERMIT,';
+  stSql := stSql + ' ''N'' ';
+  stSql := stSql + ' FROM ';
+  stSql := stSql + ' ( Select ';
+  stSql := stSql + ' aa.GROUP_CODE,';
+  stSql := stSql + ' bb.DE_SEQ,';
+  stSql := stSql + ' aa.CA_CARDNO,';
+  stSql := stSql + ' bb.CP_PERMIT ';
+  stSql := stSql + ' From (select * from TB_CARD where CA_GROUPCODE = ' + aGroupCode + ' AND CA_GRADETYPE = 1) aa ';
+  stSql := stSql + ' Inner Join TB_CARDPERMITGROUP bb ';
+  stSql := stSql + ' ON (aa.GROUP_CODE = bb.GROUP_CODE ';
+  stSql := stSql + ' AND aa.CA_GROUPCODE = bb.CA_GROUPCODE ) ';
+  stSql := stSql + ' ) A ';
+  stSql := stSql + ' where a.GROUP_CODE = ''' + G_stGroupCode + ''' ';
+  stSql := stSql + ' AND NOT EXISTS ';
+  stSql := stSql + ' (SELECT * FROM TB_DEVICECARDNO B ';
+  stSql := stSql + ' WHERE B.GROUP_CODE = A.GROUP_CODE ';
+  stSql := stSql + ' AND B.DE_SEQ = A.DE_SEQ ';
+  stSql := stSql + ' AND B.CA_CARDNO = A.CA_CARDNO )  ';
+
+  dmDataBase.ProcessExecSQL(stSql);
+end;
+
+procedure TdmCardPermit.GroupDoorPermitAdd(aGroupCode, aDoorSeq: string);
+begin
+  if dmDBFunction.CheckTB_CARDPERMITGROUP_DoorSeq(aGroupCode, aDoorSeq) =  1 then
+  begin
+    dmDBUpdate.UpdateTB_CARDPERMITGROUP_FieldString(aGroupCode,aDoorSeq,'CP_PERMIT','1');
+  end else
+  begin
+    dmDBInsert.InsertIntoTB_CARDPERMITGROUP_Value(aGroupCode,aDoorSeq,'1','N');
+  end;
+end;
+
+procedure TdmCardPermit.GroupDoorPermitChange(aGroupCode: string);
+begin
+  GroupDoorExistUpdatePermit(aGroupCode);
+  GroupDoorNotExistInsertPermit(aGroupCode);
+end;
+
+procedure TdmCardPermit.GroupDoorPermitDelete(aGroupCode, aDoorSeq: string);
+begin
+  if dmDBFunction.CheckTB_CARDPERMITGROUP_DoorSeq(aGroupCode, aDoorSeq) =  1 then
+  begin
+    dmDBUpdate.UpdateTB_CARDPERMITGROUP_FieldString(aGroupCode,aDoorSeq,'CP_PERMIT','0');
+  end else
+  begin
+    dmDBInsert.InsertIntoTB_CARDPERMITGROUP_Value(aGroupCode,aDoorSeq,'0','N');
+  end;
+
+end;
+
+end.

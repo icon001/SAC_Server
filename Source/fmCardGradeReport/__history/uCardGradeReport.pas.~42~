@@ -1,0 +1,482 @@
+﻿unit uCardGradeReport;
+
+interface
+
+uses
+  Winapi.Windows, Winapi.Messages, System.SysUtils, System.Variants, System.Classes, Vcl.Graphics,
+  Vcl.Controls, Vcl.Forms, Vcl.Dialogs,uSubForm, AdvOfficeTabSet,
+  AdvOfficeTabSetStylers, CommandArray, Vcl.Grids, AdvObj, BaseGrid, AdvGrid,
+  Vcl.StdCtrls, AdvEdit, Vcl.Buttons, AdvSmoothLabel, AdvSmoothPanel, W7Classes,
+  W7Panels, AdvGlassButton,ADODB,ActiveX, frmshape, Vcl.Mask, AdvSpin,
+  DBAdvSmoothLabel, AdvSmoothProgressBar, Vcl.ExtCtrls, AdvCombo, AdvGlowButton,
+  AdvOfficePager, Vcl.Imaging.pngimage, Vcl.Menus, AdvOfficePagerStylers,
+  AdvAppStyler;
+
+type
+  TfmCardGradeReport = class(TfmASubForm)
+    BodyPanel: TAdvSmoothPanel;
+    sg_CardList: TAdvStringGrid;
+    AdvOfficePager1: TAdvOfficePager;
+    AdvOfficePage1: TAdvOfficePage;
+    btn_minimize: TAdvGlowButton;
+    btn_Close: TAdvGlowButton;
+    lb_List: TLabel;
+    AdvFormStyler1: TAdvFormStyler;
+    AdvOfficePagerOfficeStyler1: TAdvOfficePagerOfficeStyler;
+    AdvOfficeTabSetOfficeStyler1: TAdvOfficeTabSetOfficeStyler;
+    AdvOfficePage2: TAdvOfficePage;
+    AdvSmoothLabel1: TAdvSmoothLabel;
+    cmb_DoorBuilding: TAdvComboBox;
+    AdvSmoothLabel2: TAdvSmoothLabel;
+    cmb_DoorBuildingArea: TAdvComboBox;
+    AdvSmoothLabel4: TAdvSmoothLabel;
+    cmb_Door: TAdvComboBox;
+    BodyPanel2: TAdvSmoothPanel;
+    Label1: TLabel;
+    sg_DoorList: TAdvStringGrid;
+    AdvSmoothLabel3: TAdvSmoothLabel;
+    AdvSmoothLabel5: TAdvSmoothLabel;
+    AdvSmoothLabel6: TAdvSmoothLabel;
+    AdvSmoothLabel7: TAdvSmoothLabel;
+    cmb_CardGubun: TAdvComboBox;
+    cmb_CardBuilding: TAdvComboBox;
+    cmb_CardBuildingArea: TAdvComboBox;
+    AdvEdit2: TAdvEdit;
+    procedure FormShow(Sender: TObject);
+    procedure FormClose(Sender: TObject; var Action: TCloseAction);
+    procedure FormResize(Sender: TObject);
+    procedure FormCreate(Sender: TObject);
+    procedure sg_CardListCheckBoxClick(Sender: TObject; ACol, ARow: Integer;
+      State: Boolean);
+    procedure CommandArrayCommandsTGRADEREFRESHExecute(Command: TCommand;
+      Params: TStringList);
+    procedure CommandArrayCommandsTMENUIDExecute(Command: TCommand;
+      Params: TStringList);
+    procedure CommandArrayCommandsTFORMNAMEExecute(Command: TCommand;
+      Params: TStringList);
+    procedure btn_CloseClick(Sender: TObject);
+    procedure btn_minimizeClick(Sender: TObject);
+    procedure cmb_DoorBuildingChange(Sender: TObject);
+    procedure cmb_CardBuildingChange(Sender: TObject);
+    procedure cmb_CardGubunChange(Sender: TObject);
+    procedure cmb_CardBuildingAreaChange(Sender: TObject);
+    procedure AdvEdit2KeyUp(Sender: TObject; var Key: Word; Shift: TShiftState);
+    procedure cmb_DoorBuildingAreaChange(Sender: TObject);
+    procedure cmb_DoorChange(Sender: TObject);
+  private
+    L_nCheckCount : integer;
+    L_nProgress : integer;
+    L_stMenuID : string;
+    L_stButtonCloseCaption : string;
+    L_stButtonPreCaption : string;
+    L_stWork : string;
+    CardGubunCodeList : TStringList;
+    CardBuildingCodeList : TStringList;
+    CardBuildingAreaCodeList : TStringList;
+    DoorBuildingCodeList:TStringList;
+    DoorBuildingAreaCodeList:TstringList;
+    DoorCodeList : TStringList;
+    { Private declarations }
+    Function FormNameSetting:Boolean;
+  private
+    procedure AdvStrinGridSetAllCheck(Sender: TObject;bchkState:Boolean);
+    procedure SearchCardGradeList;
+    procedure SearchDoorGradeList;
+  public
+    { Public declarations }
+    procedure FormChangeEvent(aFormName:integer);
+  end;
+
+var
+  fmCardGradeReport: TfmCardGradeReport;
+
+implementation
+uses
+  uCommonFunction,
+  uCommonVariable,
+  uDataBase,
+  uDBDelete,
+  uDBFunction,
+  uDBInsert,
+  uDBUpdate,
+  uDBSelect,
+  uDBVariable,
+  uComboBoxCodeLoad;
+{$R *.dfm}
+
+
+
+procedure TfmCardGradeReport.AdvEdit2KeyUp(Sender: TObject; var Key: Word;
+  Shift: TShiftState);
+begin
+  inherited;
+  SearchCardGradeList;
+end;
+
+procedure TfmCardGradeReport.AdvStrinGridSetAllCheck(Sender: TObject;
+  bchkState: Boolean);
+var
+  i : integer;
+begin
+    for i:= 1 to (Sender as TAdvStringGrid).RowCount - 1  do
+    begin
+      (Sender as TAdvStringGrid).SetCheckBoxState(0,i,bchkState);
+    end;
+end;
+
+procedure TfmCardGradeReport.btn_CloseClick(Sender: TObject);
+begin
+  inherited;
+  Close;
+end;
+
+procedure TfmCardGradeReport.btn_minimizeClick(Sender: TObject);
+begin
+  inherited;
+  windowState := wsNormal;
+end;
+
+procedure TfmCardGradeReport.cmb_CardBuildingAreaChange(Sender: TObject);
+begin
+  inherited;
+  SearchCardGradeList;
+end;
+
+procedure TfmCardGradeReport.cmb_CardBuildingChange(Sender: TObject);
+var
+  stBuildingCode : string;
+begin
+  inherited;
+  if cmb_CardBuilding.ItemIndex > -1 then
+     stBuildingCode := CardBuildingCodeList.Strings[cmb_CardBuilding.ItemIndex];
+  dmComboBoxCodeLoad.LoadBuildingAreaCode(stBuildingCode,CardBuildingAreaCodeList,TComboBox(cmb_CardBuildingArea),True,'전체');
+  SearchCardGradeList;
+
+end;
+
+procedure TfmCardGradeReport.cmb_CardGubunChange(Sender: TObject);
+begin
+  inherited;
+  SearchCardGradeList;
+end;
+
+procedure TfmCardGradeReport.cmb_DoorBuildingAreaChange(Sender: TObject);
+var
+  stBuildingCode : string;
+  stBuildingAreaCode : string;
+begin
+  inherited;
+  if cmb_DoorBuilding.ItemIndex > -1 then
+     stBuildingCode := DoorBuildingCodeList.Strings[cmb_DoorBuilding.ItemIndex];
+  if cmb_DoorBuildingArea.ItemIndex > -1 then
+     stBuildingAreaCode := DoorBuildingAreaCodeList.Strings[cmb_DoorBuildingArea.ItemIndex];
+
+  stBuildingAreaCode := '';
+  dmComboBoxCodeLoad.LoadDoorCode(stBuildingCode,stBuildingAreaCode,DoorCodeList,TComboBox(cmb_Door),True,'전체');
+  SearchDoorGradeList;
+  SearchCardGradeList;
+end;
+
+procedure TfmCardGradeReport.cmb_DoorBuildingChange(Sender: TObject);
+var
+  stBuildingCode : string;
+  stBuildingAreaCode : string;
+begin
+  inherited;
+  if cmb_DoorBuilding.ItemIndex > -1 then
+     stBuildingCode := DoorBuildingCodeList.Strings[cmb_DoorBuilding.ItemIndex];
+  dmComboBoxCodeLoad.LoadBuildingAreaCode(stBuildingCode,DoorBuildingAreaCodeList,TComboBox(cmb_DoorBuildingArea),True,'전체');
+  stBuildingAreaCode := '';
+  dmComboBoxCodeLoad.LoadDoorCode(stBuildingCode,stBuildingAreaCode,DoorCodeList,TComboBox(cmb_Door),True,'전체');
+  SearchDoorGradeList;
+
+end;
+
+procedure TfmCardGradeReport.cmb_DoorChange(Sender: TObject);
+begin
+  inherited;
+  SearchDoorGradeList;
+end;
+
+procedure TfmCardGradeReport.CommandArrayCommandsTFORMNAMEExecute(Command: TCommand;
+  Params: TStringList);
+begin
+  inherited;
+  Caption := Params.Values['CAPTION'];
+
+end;
+
+procedure TfmCardGradeReport.CommandArrayCommandsTGRADEREFRESHExecute(
+  Command: TCommand; Params: TStringList);
+begin
+  inherited;
+(*  btn_Add.Enabled := IsInsertGrade;
+  pm_CodeAdd.Enabled := IsInsertGrade;
+  btn_Delete.Enabled := IsDeleteGrade;
+  pm_DeleteCode.Enabled := IsDeleteGrade;
+  btn_Update.Enabled
+*)
+end;
+
+procedure TfmCardGradeReport.CommandArrayCommandsTMENUIDExecute(Command: TCommand;
+  Params: TStringList);
+begin
+  inherited;
+  L_stMenuID := Params.Values['ID'];
+end;
+
+procedure TfmCardGradeReport.FormChangeEvent(aFormName: integer);
+begin
+//  case aFormName of
+//  end;
+end;
+
+procedure TfmCardGradeReport.FormClose(Sender: TObject; var Action: TCloseAction);
+begin
+  inherited;
+
+  CardGubunCodeList.Free;
+  CardBuildingCodeList.Free;
+  CardBuildingAreaCodeList.Free;
+  DoorBuildingCodeList.Free;
+  DoorBuildingAreaCodeList.Free;
+  DoorCodeList.Free;
+
+  Action := caFree;
+end;
+
+procedure TfmCardGradeReport.FormCreate(Sender: TObject);
+begin
+  inherited;
+  CardGubunCodeList := TStringList.Create;
+  CardBuildingCodeList := TStringList.Create;
+  CardBuildingAreaCodeList := TStringList.Create;
+  DoorBuildingCodeList := TStringList.Create;
+  DoorBuildingAreaCodeList := TStringList.Create;
+  DoorCodeList := TStringList.Create;
+
+  dmComboBoxCodeLoad.LoadCardGubunCode(CardGubunCodeList,TComboBox(cmb_CardGubun),True,'전체');
+  dmComboBoxCodeLoad.LoadBuildingCode(DoorBuildingCodeList,TComboBox(cmb_DoorBuilding),True,'전체');
+  dmComboBoxCodeLoad.LoadBuildingCode(CardBuildingCodeList,TComboBox(cmb_CardBuilding),True,'전체');
+  cmb_DoorBuildingChange(cmb_DoorBuilding);
+  cmb_CardBuildingChange(cmb_CardBuilding);
+end;
+
+function TfmCardGradeReport.FormNameSetting: Boolean;
+begin
+
+end;
+
+procedure TfmCardGradeReport.FormResize(Sender: TObject);
+begin
+  inherited;
+  btn_Close.Left := AdvOfficePager1.Width - btn_Close.Width - 10;
+  btn_minimize.Left := btn_Close.Left - btn_minimize.Width - 2;
+
+  if Windowstate = wsMaximized then
+  begin
+    btn_minimize.Visible := True;
+    btn_Close.Visible := True;
+  end else
+  begin
+    btn_minimize.Visible := False;
+    btn_Close.Visible := False;
+  end;
+
+  sg_CardList.Left := 10;
+  sg_CardList.Width := BodyPanel.Width - (sg_CardList.Left * 2);
+  sg_CardList.Height := BodyPanel.Height - (sg_CardList.Top + 10);
+
+  sg_DoorList.Left := 10;
+  sg_DoorList.Width := BodyPanel2.Width - (sg_DoorList.Left * 2);
+  sg_DoorList.Height := BodyPanel2.Height - (sg_DoorList.Top + 10);
+
+end;
+
+procedure TfmCardGradeReport.FormShow(Sender: TObject);
+begin
+  inherited;
+  WindowState := wsMaximized;
+
+  FormNameSetting;
+//  self.FindSubForm('Main').FindCommand('FORMENABLE').Params.Values['NAME'] := inttostr(conFORMNODEADMIN);
+//  self.FindSubForm('Main').FindCommand('FORMENABLE').Params.Values['VALUE'] := 'TRUE';
+//  self.FindSubForm('Main').FindCommand('FORMENABLE').Execute;
+end;
+
+procedure TfmCardGradeReport.SearchCardGradeList;
+var
+  stSql : string;
+  TempAdoQuery : TADOQuery;
+  nRow : integer;
+  stBuildingCode,stBuildingAreaCode,stCardGubun,stCardName : string;
+begin
+  GridInitialize(sg_DoorList);
+  if cmb_CardGubun.ItemIndex > -1 then
+    stCardGubun := CardGubunCodeList.Strings[cmb_CardGubun.ItemIndex];
+  if cmb_CardBuilding.ItemIndex > -1 then
+    stBuildingCode := CardBuildingCodeList.Strings[cmb_CardBuilding.ItemIndex];
+  if cmb_CardBuildingArea.ItemIndex > -1 then
+    stBuildingAreaCode := CardBuildingAreaCodeList.Strings[cmb_CardBuildingArea.ItemIndex];
+
+  stSql := dmDBSelect.SelectTB_DEVICECARDNO_CardName(stBuildingCode,stBuildingAreaCode,stCardGubun,stCardName);
+  L_nCheckCount := 0;
+
+  Try
+    CoInitialize(nil);
+    TempAdoQuery := TADOQuery.Create(nil);
+    TempAdoQuery.Connection := dmDataBase.ADOConnection;
+    TempAdoQuery.DisableControls;
+
+    with TempAdoQuery do
+    begin
+      Close;
+      sql.Text := stSql;
+      Try
+        Open;
+      Except
+        Exit;
+      End;
+      if recordcount < 1 then Exit;
+      with sg_DoorList do
+      begin
+(*
+카드위치(동)
+카드위치(출구)
+카드위치(호)
+카드번호
+사용자명
+카드구분
+출입문위치(동)
+출입문위치(출구)
+출입문명
+전송현황
+*)
+        nRow := 1;
+        RowCount := RecordCount + 1;
+        while Not Eof do
+        begin
+          cells[0,nRow] := FindField('CARDBUILDINGNAME').AsString;
+          cells[1,nRow] := FindField('CARDBUILDINGAREANAME').AsString;
+          cells[2,nRow] := FindField('CA_ADDR').AsString;
+          cells[3,nRow] := FindField('CA_CARDNO').AsString;
+          cells[4,nRow] := FindField('CA_NAME').AsString;
+          cells[5,nRow] := FindField('CA_GUBUNNAME').AsString;
+          cells[6,nRow] := FindField('DOORBUILDINGNAME').AsString;
+          cells[7,nRow] := FindField('DOORBUILDINGAREANAME').AsString;
+          cells[8,nRow] := FindField('DE_DEVICENAME').AsString;
+          cells[9,nRow] := FindField('CA_SEND').AsString;
+
+          nRow := nRow + 1;
+          Next;
+        end;
+      end;
+
+    end;
+  Finally
+    TempAdoQuery.EnableControls;
+    TempAdoQuery.Free;
+    CoUninitialize;
+  End;
+
+end;
+
+procedure TfmCardGradeReport.SearchDoorGradeList;
+var
+  stSql : string;
+  TempAdoQuery : TADOQuery;
+  nRow : integer;
+  stBuildingCode,stBuildingAreaCode,stDoorCode : string;
+begin
+  GridInitialize(sg_CardList);
+  if cmb_DoorBuilding.ItemIndex > -1 then
+    stBuildingCode := DoorBuildingCodeList.Strings[cmb_DoorBuilding.ItemIndex];
+  if cmb_DoorBuildingArea.ItemIndex > -1 then
+    stBuildingAreaCode := DoorBuildingAreaCodeList.Strings[cmb_DoorBuildingArea.ItemIndex];
+  if cmb_Door.ItemIndex > -1 then
+    stDoorCode := DoorCodeList.Strings[cmb_Door.ItemIndex];
+
+  stSql := dmDBSelect.SelectTB_DEVICECARDNO_DoorCode(stBuildingCode,stBuildingAreaCode,stDoorCode);
+  L_nCheckCount := 0;
+
+  Try
+    CoInitialize(nil);
+    TempAdoQuery := TADOQuery.Create(nil);
+    TempAdoQuery.Connection := dmDataBase.ADOConnection;
+    TempAdoQuery.DisableControls;
+
+    with TempAdoQuery do
+    begin
+      Close;
+      sql.Text := stSql;
+      Try
+        Open;
+      Except
+        Exit;
+      End;
+      if recordcount < 1 then Exit;
+      with sg_CardList do
+      begin
+(*
+출입문위치(동)
+출입문위치(출구)
+출입문명
+카드위치(동)
+카드위치(출구)
+카드위치(호)
+카드번호
+사용자명
+카드구분
+전송현황
+*)
+        nRow := 1;
+        RowCount := RecordCount + 1;
+        while Not Eof do
+        begin
+          cells[0,nRow] := FindField('DOORBUILDINGNAME').AsString;
+          cells[1,nRow] := FindField('DOORBUILDINGAREANAME').AsString;
+          cells[2,nRow] := FindField('DE_DEVICENAME').AsString;
+          cells[3,nRow] := FindField('CARDBUILDINGNAME').AsString;
+          cells[4,nRow] := FindField('CARDBUILDINGAREANAME').AsString;
+          cells[5,nRow] := FindField('CA_ADDR').AsString;
+          cells[6,nRow] := FindField('CA_CARDNO').AsString;
+          cells[7,nRow] := FindField('CA_NAME').AsString;
+          cells[8,nRow] := FindField('CA_GUBUNNAME').AsString;
+          cells[9,nRow] := FindField('CA_SEND').AsString;
+
+          nRow := nRow + 1;
+          Next;
+        end;
+      end;
+
+    end;
+  Finally
+    TempAdoQuery.EnableControls;
+    TempAdoQuery.Free;
+    CoUninitialize;
+  End;
+end;
+
+procedure TfmCardGradeReport.sg_CardListCheckBoxClick(Sender: TObject; ACol,
+  ARow: Integer; State: Boolean);
+begin
+  inherited;
+  if ARow = 0 then //전체선택 또는 해제
+  begin
+    if State then L_nCheckCount := (Sender as TAdvStringGrid).RowCount - 1
+    else L_nCheckCount := 0;
+    AdvStrinGridSetAllCheck(Sender,State);
+  end else
+  begin
+    if State then L_nCheckCount := L_nCheckCount + 1
+    else L_nCheckCount := L_nCheckCount - 1 ;
+  end;
+end;
+
+
+initialization
+  RegisterClass(TfmCardGradeReport);
+Finalization
+  UnRegisterClass(TfmCardGradeReport);
+
+end.

@@ -1,0 +1,184 @@
+unit uDBFunction;
+
+interface
+
+uses
+  System.SysUtils, System.Classes,Winapi.ActiveX,Data.Win.ADODB,DB;
+
+type
+  TdmDBFunction = class(TDataModule)
+  private
+    { Private declarations }
+  public
+    { Public declarations }
+    Function GetNextBuildingAreaCode(aBuildingCode:string):string;
+    Function GetNextBuildingCode : string;
+    Function GetNextBuildingFloorCode : string;
+    Function GetNextDeviceSeq : string;
+  end;
+
+var
+  dmDBFunction: TdmDBFunction;
+
+implementation
+uses
+  uCommonVariable,
+  uDataBase;
+
+{%CLASSGROUP 'Vcl.Controls.TControl'}
+
+{$R *.dfm}
+
+{ TdmDBFunction }
+
+function TdmDBFunction.GetNextBuildingAreaCode(aBuildingCode: string): string;
+var
+  stSql : string;
+  TempAdoQuery :TADOQuery;
+begin
+  result := '1';
+  stSql := 'select MAX(BC_BUILDINGAREACODE) as BC_BUILDINGAREACODE from TB_BUILDINGAREACODE ';
+  stSql := stSql + ' Where  GROUP_CODE = ''' + G_stGroupCode + ''' ';
+  stSql := stSql + ' AND  BC_BUILDINGCODE = ' + aBuildingCode + ' ';
+
+  Try
+    CoInitialize(nil);
+    TempAdoQuery := TADOQuery.Create(nil);
+    TempAdoQuery.Connection := dmDataBase.ADOConnection;
+    TempAdoQuery.DisableControls;
+
+    with TempAdoQuery do
+    begin
+      Close;
+      Sql.Clear;
+      Sql.Text := stSql;
+
+      Try
+        Open;
+      Except
+        Exit;
+      End;
+      if recordCount < 1 then Exit;
+      if FindField('BC_BUILDINGAREACODE').IsNull then Exit;
+      result := inttostr(FindField('BC_BUILDINGAREACODE').AsInteger + 1);
+    end;
+  Finally
+    TempAdoQuery.EnableControls;
+    TempAdoQuery.Free;
+    CoUninitialize;
+  End;
+end;
+
+function TdmDBFunction.GetNextBuildingCode: string;
+var
+  stSql : string;
+  TempAdoQuery :TADOQuery;
+begin
+  result := '1';
+  stSql := 'select MAX(BC_BUILDINGCODE) as BC_BUILDINGCODE from TB_BUILDINGCODE ';
+  stSql := stSql + ' Where  GROUP_CODE = ''' + G_stGroupCode + ''' ';
+
+  Try
+    CoInitialize(nil);
+    TempAdoQuery := TADOQuery.Create(nil);
+    TempAdoQuery.Connection := dmDataBase.ADOConnection;
+    TempAdoQuery.DisableControls;
+
+    with TempAdoQuery do
+    begin
+      Close;
+      Sql.Clear;
+      Sql.Text := stSql;
+
+      Try
+        Open;
+      Except
+        Exit;
+      End;
+      if recordCount < 1 then Exit;
+      if FindField('BC_BUILDINGCODE').IsNull then Exit;
+      result := inttostr(FindField('BC_BUILDINGCODE').AsInteger + 1);
+    end;
+  Finally
+    TempAdoQuery.EnableControls;
+    TempAdoQuery.Free;
+    CoUninitialize;
+  End;
+end;
+
+function TdmDBFunction.GetNextBuildingFloorCode: string;
+var
+  stSql : string;
+  TempAdoQuery :TADOQuery;
+begin
+  result := '1';
+  stSql := 'select MAX(BC_BUILDINGFLOORCODE) as BC_BUILDINGFLOORCODE from TB_BUILDINGFLOORCODE ';
+  stSql := stSql + ' Where  GROUP_CODE = ''' + G_stGroupCode + ''' ';
+
+  Try
+    CoInitialize(nil);
+    TempAdoQuery := TADOQuery.Create(nil);
+    TempAdoQuery.Connection := dmDataBase.ADOConnection;
+    TempAdoQuery.DisableControls;
+
+    with TempAdoQuery do
+    begin
+      Close;
+      Sql.Clear;
+      Sql.Text := stSql;
+
+      Try
+        Open;
+      Except
+        Exit;
+      End;
+      if recordCount < 1 then Exit;
+      if FindField('BC_BUILDINGFLOORCODE').IsNull then Exit;
+      result := inttostr(FindField('BC_BUILDINGFLOORCODE').AsInteger + 1);
+    end;
+  Finally
+    TempAdoQuery.EnableControls;
+    TempAdoQuery.Free;
+    CoUninitialize;
+  End;
+end;
+
+function TdmDBFunction.GetNextDeviceSeq: string;
+var
+  stSql : string;
+  TempAdoQuery :TADOQuery;
+begin
+  result := '1';
+  stSql := 'select MAX(DE_SEQ) as DE_SEQ from TB_DEVICE ';
+  stSql := stSql + ' Where  GROUP_CODE = ''' + G_stGroupCode + ''' ';
+
+  Try
+    CoInitialize(nil);
+    TempAdoQuery := TADOQuery.Create(nil);
+    TempAdoQuery.Connection := dmDataBase.ADOConnection;
+    TempAdoQuery.DisableControls;
+
+    with TempAdoQuery do
+    begin
+      Close;
+      Sql.Clear;
+      Sql.Text := stSql;
+
+      Try
+        Open;
+      Except
+        Exit;
+      End;
+      if recordCount < 1 then Exit;
+      if FindField('DE_SEQ').IsNull then Exit;
+      result := inttostr(FindField('DE_SEQ').AsInteger + 1);
+    end;
+  Finally
+    TempAdoQuery.EnableControls;
+    TempAdoQuery.Free;
+    CoUninitialize;
+  End;
+end;
+
+
+end.

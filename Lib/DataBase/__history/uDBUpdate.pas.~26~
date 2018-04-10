@@ -1,0 +1,322 @@
+unit uDBUpdate;
+
+interface
+
+uses
+  System.SysUtils, System.Classes;
+
+type
+  TdmDBUpdate = class(TDataModule)
+  private
+    { Private declarations }
+  public
+    { Public declarations }
+    Function UpdateTB_ADMIN_Field_StringValue(aAdminID,aFieldName,aValue:string):Boolean;
+    Function UpdateTB_BUILDINGAREACODE_Name(aBuildingCode,aBuildingAreaCode,aBuildingAreaName:string):Boolean;
+    Function UpdateTB_BUILDINGCODE_BuildingName(aBuildingCode,aBuildingName,aDongCode:string):Boolean;
+    Function UpdateTB_BUILDINGFLOORCODE_Name(aFloorCode,aFloorName:string):Boolean;
+    Function UpdateTB_CARD_AllStartSend(aOld,aNew:string):Boolean;
+    Function UpdateTB_CARD_AllEndSend(aOld,aNew:string):Boolean;
+    Function UpdateTB_CARD_FieldInteger(aCardNo,aFieldName,aValue:string):Boolean;
+    Function UpdateTB_CARD_FieldString(aCardNo,aFieldName,aValue:string):Boolean;
+    Function UpdateTB_CARD_Value(aCardNo,aCardState,aCardName,aCardGubun,aBuildingCode,aBuildingAreaCode,aBuildingFloorCode,aAddr,aGradeType,aGroupCode,aStartDate,aEndDate,aStartSend,aEndSend:string):Boolean;
+    Function UpdateTB_CARDGROUPCODE_Name(aCode,aName:string):Boolean;
+    Function UpdateTB_CARDGUBUNCODE_Name(aCode,aName:string):Boolean;
+    Function UpdateTB_CARDPERMITGROUP_FieldString(aGroupCode,aDoorSeq,aFieldName,aValue:string):Boolean;
+    Function UpdateTB_CONFIG_Value(aCONFIGGROUP, aCONFIGCODE,aCONFIGVALUE : string):Boolean;
+    Function UpdateTB_DEVICECARDNO_AllSendTypeClear:Boolean;
+    Function UpdateTB_DEVICECARDNO_CardNoSendType(aNodeSeq,aCardNo,aSendType:string):Boolean;
+    Function UpdateTB_DEVICECARDNO_CardPermit(aCardNo,aPermit:string):Boolean;
+    Function UpdateTB_DEVICECARDNO_CardResend(aNodeNo:string):Boolean;
+    Function UpdateTB_DEVICECARDNO_FieldString(aDeviceSeq,aCardNo,aFieldName,aValue:string):Boolean;
+    Function UpdateTB_DEVICECARDNO_SendType(aOldType,aNewType:string):Boolean;
+    Function UpdateTB_DEVICE_Value(aDoorCode,aBuildingCode,aBuildingAreaCode,aBuildingFloorCode,aNodeIP,aNodePort,aReaderID,aDeviceName,aLockType,aLockMode,aLockTime,aSenserType,aSenserMode,aSenerTime:string):Boolean;
+  end;
+
+var
+  dmDBUpdate: TdmDBUpdate;
+
+implementation
+uses
+  uCommonVariable,
+  uDataBase;
+
+{%CLASSGROUP 'Vcl.Controls.TControl'}
+
+{$R *.dfm}
+
+{ TdmDBUpdate }
+
+function TdmDBUpdate.UpdateTB_ADMIN_Field_StringValue(aAdminID, aFieldName,
+  aValue: string): Boolean;
+var
+  stSql : string;
+begin
+  stSql := 'Update TB_ADMIN set ' + aFieldName + ' = ''' + aValue + ''' ';
+  stSql := stSql + ' Where GROUP_CODE = ''' + G_stGroupCode + ''' ';
+  stSql := stSql + ' AND AD_USERID = ''' + aAdminID + ''' ';
+
+  result := dmDataBase.ProcessExecSQL(stSql);
+end;
+
+function TdmDBUpdate.UpdateTB_BUILDINGAREACODE_Name(aBuildingCode,
+  aBuildingAreaCode, aBuildingAreaName: string): Boolean;
+var
+  stSql : string;
+begin
+  stSql := 'Update TB_BUILDINGAREACODE set BC_BUILDINGAREANAME = ''' + aBuildingAreaName + ''' ';
+  stSql := stSql + ' Where GROUP_CODE = ''' + G_stGroupCode + ''' ';
+  stSql := stSql + ' AND BC_BUILDINGCODE = ' + aBuildingCode + ' ';
+  stSql := stSql + ' AND BC_BUILDINGAREACODE = ' + aBuildingAreaCode + ' ';
+
+  result := dmDataBase.ProcessExecSQL(stSql);
+end;
+
+function TdmDBUpdate.UpdateTB_BUILDINGCODE_BuildingName(aBuildingCode,
+  aBuildingName,aDongCode: string): Boolean;
+var
+  stSql : string;
+begin
+  stSql := 'Update TB_BUILDINGCODE set BC_BUILDINGNAME = ''' + aBuildingName + ''', ';
+  stSql := stSql + ' BC_DONGCODE = ''' + aDongCode + ''' ';
+  stSql := stSql + ' Where GROUP_CODE = ''' + G_stGroupCode + ''' ';
+  stSql := stSql + ' AND BC_BUILDINGCODE = ' + aBuildingCode + ' ';
+
+  result := dmDataBase.ProcessExecSQL(stSql);
+end;
+
+function TdmDBUpdate.UpdateTB_BUILDINGFLOORCODE_Name(aFloorCode,
+  aFloorName: string): Boolean;
+var
+  stSql : string;
+begin
+  stSql := 'Update TB_BUILDINGFLOORCODE set BC_BUILDINGFLOORNAME = ''' + aFloorName + ''' ';
+  stSql := stSql + ' Where GROUP_CODE = ''' + G_stGroupCode + ''' ';
+  stSql := stSql + ' AND BC_BUILDINGFLOORCODE = ' + aFloorCode + ' ';
+
+  result := dmDataBase.ProcessExecSQL(stSql);
+end;
+
+function TdmDBUpdate.UpdateTB_CARDGROUPCODE_Name(aCode, aName: string): Boolean;
+var
+  stSql : string;
+begin
+  stSql := 'Update TB_CARDGROUPCODE set CA_GROUPCODENAME = ''' + aName + ''' ';
+  stSql := stSql + ' Where GROUP_CODE = ''' + G_stGroupCode + ''' ';
+  stSql := stSql + ' AND CA_GROUPCODE = ' + aCode + ' ';
+
+  result := dmDataBase.ProcessExecSQL(stSql);
+end;
+
+function TdmDBUpdate.UpdateTB_CARDGUBUNCODE_Name(aCode, aName: string): Boolean;
+var
+  stSql : string;
+begin
+  stSql := 'Update TB_CARDGUBUNCODE set CA_GUBUNNAME = ''' + aName + ''' ';
+  stSql := stSql + ' Where GROUP_CODE = ''' + G_stGroupCode + ''' ';
+  stSql := stSql + ' AND CA_GUBUN = ' + aCode + ' ';
+
+  result := dmDataBase.ProcessExecSQL(stSql);
+end;
+
+function TdmDBUpdate.UpdateTB_CARDPERMITGROUP_FieldString(aGroupCode, aDoorSeq,
+  aFieldName, aValue: string): Boolean;
+var
+  stSql : string;
+begin
+  stSql := 'Update TB_CARDPERMITGROUP set ' + aFieldName + ' = ''' + aValue + ''' ';
+  stSql := stSql + ' Where GROUP_CODE = ''' + G_stGroupCode + ''' ';
+  stSql := stSql + ' AND CA_GROUPCODE = ' + aGroupCode + ' ';
+  stSql := stSql + ' AND DE_SEQ = ' + aDoorSeq + ' ';
+
+  result := dmDataBase.ProcessExecSQL(stSql);
+end;
+
+function TdmDBUpdate.UpdateTB_CARD_AllEndSend(aOld, aNew: string): Boolean;
+var
+  stSql : string;
+begin
+  stSql := 'Update TB_CARD Set CA_ENDSEND = ''' + aNew + ''' ' ;
+  stSql := stSql + ' Where GROUP_CODE = ''' + G_stGroupCode + '''';
+  stSql := stSql + ' AND CA_ENDSEND = ''' + aOld + '''';
+
+  result := dmDataBase.ProcessExecSQL(stSql);
+end;
+
+function TdmDBUpdate.UpdateTB_CARD_AllStartSend(aOld, aNew: string): Boolean;
+var
+  stSql : string;
+begin
+  stSql := 'Update TB_CARD Set CA_STARTSEND = ''' + aNew + ''' ' ;
+  stSql := stSql + ' Where GROUP_CODE = ''' + G_stGroupCode + '''';
+  stSql := stSql + ' AND CA_STARTSEND = ''' + aOld + '''';
+
+  result := dmDataBase.ProcessExecSQL(stSql);
+end;
+
+function TdmDBUpdate.UpdateTB_CARD_FieldInteger(aCardNo, aFieldName,
+  aValue: string): Boolean;
+var
+  stSql : string;
+begin
+  stSql := 'Update TB_CARD Set ' + aFieldName + ' = ' + aValue + ' ' ;
+  stSql := stSql + ' Where GROUP_CODE = ''' + G_stGroupCode + '''';
+  stSql := stSql + ' AND CA_CARDNO = ''' + aCardNo + '''';
+
+  result := dmDataBase.ProcessExecSQL(stSql);
+end;
+
+function TdmDBUpdate.UpdateTB_CARD_FieldString(aCardNo, aFieldName,
+  aValue: string): Boolean;
+var
+  stSql : string;
+begin
+  stSql := 'Update TB_CARD Set ' + aFieldName + ' = ''' + aValue + ''' ' ;
+  stSql := stSql + ' Where GROUP_CODE = ''' + G_stGroupCode + '''';
+  stSql := stSql + ' AND CA_CARDNO = ''' + aCardNo + '''';
+
+  result := dmDataBase.ProcessExecSQL(stSql);
+end;
+
+function TdmDBUpdate.UpdateTB_CARD_Value(aCardNo, aCardState, aCardName,
+  aCardGubun, aBuildingCode, aBuildingAreaCode, aBuildingFloorCode, aAddr,
+  aGradeType, aGroupCode, aStartDate, aEndDate, aStartSend,
+  aEndSend: string): Boolean;
+var
+  stSql : string;
+begin
+  stSql := 'Update TB_CARD Set ';
+  stSql := stSql + ' CA_STATECODE = ''' + aCardState + ''',';
+  stSql := stSql + ' CA_NAME = ''' + aCardName + ''',';
+  stSql := stSql + ' CA_GUBUN = ' + aCardGubun + ',';
+  stSql := stSql + ' BC_BUILDINGCODE = ' + aBuildingCode + ',';
+  stSql := stSql + ' BC_BUILDINGAREACODE = ' + aBuildingAreaCode + ',';
+  stSql := stSql + ' BC_BUILDINGFLOORCODE = ' + aBuildingFloorCode + ',';
+  stSql := stSql + ' CA_ADDR = ''' + aAddr + ''',';
+  stSql := stSql + ' CA_GRADETYPE = ' + aGradeType + ',';
+  stSql := stSql + ' CA_GROUPCODE = ' + aGroupCode + ',';
+  stSql := stSql + ' CA_STARTYMDHMS = ''' + aStartDate + ''',';
+  stSql := stSql + ' CA_ENDYMDHMS = ''' + aEndDate + ''',';
+  stSql := stSql + ' CA_STARTSEND = ''' + aStartSend + ''',';
+  stSql := stSql + ' CA_ENDSEND = ''' + aEndSend + ''' ';
+  stSql := stSql + ' Where GROUP_CODE = ''' + G_stGroupCode + '''';
+  stSql := stSql + ' AND CA_CARDNO = ''' + aCardNo + '''';
+
+  result := dmDataBase.ProcessExecSQL(stSql);
+end;
+
+function TdmDBUpdate.UpdateTB_CONFIG_Value(aCONFIGGROUP, aCONFIGCODE,
+  aCONFIGVALUE: string): Boolean;
+var
+  stSql : string;
+begin
+  stSql := 'Update TB_CONFIG Set CO_CONFIGVALUE = ''' + aCONFIGVALUE + ''' ';
+  stSql := stSql + ' Where GROUP_CODE = ''' + G_stGroupCode + ''' ';
+  stSql := stSql + ' AND CO_CONFIGGROUP = ''' + aCONFIGGROUP + '''';
+  stSql := stSql + ' CO_CONFIGCODE = ''' + aCONFIGCODE + '''';
+
+  result := dmDataBase.ProcessExecSQL(stSql);
+end;
+
+function TdmDBUpdate.UpdateTB_DEVICECARDNO_AllSendTypeClear: Boolean;
+var
+  stSql : string;
+begin
+  stSql := 'Update TB_DEVICECARDNO set CA_SEND = ''N'' ';
+  stSql := stSql + ' Where GROUP_CODE = ''' + G_stGroupCode + ''' ';
+  stSql := stSql + ' AND CA_SEND <> ''Y'' ';
+
+  result := dmDataBase.ProcessExecSQL(stSql);
+end;
+
+function TdmDBUpdate.UpdateTB_DEVICECARDNO_CardNoSendType(aNodeSeq, aCardNo,
+  aSendType: string): Boolean;
+var
+  stSql : string;
+begin
+  stSql := 'Update TB_DEVICECARDNO set CA_SEND = ''' + aSendType + ''' ';
+  stSql := stSql + ' Where GROUP_CODE = ''' + G_stGroupCode + ''' ';
+  stSql := stSql + ' AND CA_CARDNO = ''' + aCardNo + ''' ';
+  if aNodeSeq <> '0' then stSql := stSql + ' AND DE_SEQ = ' + aNodeSeq + ' ';
+
+  result := dmDataBase.ProcessExecSQL(stSql);
+end;
+
+function TdmDBUpdate.UpdateTB_DEVICECARDNO_CardPermit(aCardNo,
+  aPermit: string): Boolean;
+var
+  stSql : string;
+begin
+  stSql := 'Update TB_DEVICECARDNO set CP_PERMIT = ''' + aPermit + ''', ';
+  stSql := stSql + ' CA_SEND = ''N'' ';
+  stSql := stSql + ' Where GROUP_CODE = ''' + G_stGroupCode + ''' ';
+  stSql := stSql + ' AND CA_CARDNO = ''' + aCardNo + ''' ';
+
+  result := dmDataBase.ProcessExecSQL(stSql);
+end;
+
+function TdmDBUpdate.UpdateTB_DEVICECARDNO_CardResend(aNodeNo: string): Boolean;
+var
+  stSql : string;
+begin
+  stSql := 'Update TB_DEVICECARDNO set CA_SEND = ''N'' ';
+  stSql := stSql + ' Where GROUP_CODE = ''' + G_stGroupCode + ''' ';
+  stSql := stSql + ' AND DE_SEQ = ' + aNodeNo + ' ';
+
+  result := dmDataBase.ProcessExecSQL(stSql);
+end;
+
+function TdmDBUpdate.UpdateTB_DEVICECARDNO_FieldString(aDeviceSeq, aCardNo,
+  aFieldName, aValue: string): Boolean;
+var
+  stSql : string;
+begin
+  stSql := 'Update TB_DEVICECARDNO set ' + aFieldName + ' = ''' + aValue + ''' ';
+  stSql := stSql + ' Where GROUP_CODE = ''' + G_stGroupCode + ''' ';
+  stSql := stSql + ' AND DE_SEQ = ' + aDeviceSeq + ' ';
+  stSql := stSql + ' AND CA_CARDNO = ''' + aCardNo + ''' ';
+
+  result := dmDataBase.ProcessExecSQL(stSql);
+end;
+
+function TdmDBUpdate.UpdateTB_DEVICECARDNO_SendType(aOldType,
+  aNewType: string): Boolean;
+var
+  stSql : string;
+begin
+  stSql := 'Update TB_DEVICECARDNO set CA_SEND = ''' + aNewType + ''' ';
+  stSql := stSql + ' Where GROUP_CODE = ''' + G_stGroupCode + ''' ';
+  stSql := stSql + ' AND CA_SEND = ''' + aOldType + ''' ';
+
+  result := dmDataBase.ProcessExecSQL(stSql);
+end;
+
+function TdmDBUpdate.UpdateTB_DEVICE_Value(aDoorCode, aBuildingCode,
+  aBuildingAreaCode, aBuildingFloorCode, aNodeIP, aNodePort, aReaderID,
+  aDeviceName, aLockType, aLockMode, aLockTime, aSenserType, aSenserMode,
+  aSenerTime: string): Boolean;
+var
+  stSql : string;
+begin
+  stSql := 'Update TB_DEVICE Set ';
+  stSql := stSql + ' DE_NODEIP = ''' + aNodeIP + ''',';
+  stSql := stSql + ' DE_NODEPORT = ' + aNodePort + ',';
+  stSql := stSql + ' DE_READERID = ' + aReaderID + ',';
+  stSql := stSql + ' DE_DEVICENAME = ''' + aDeviceName + ''',';
+  stSql := stSql + ' DE_LOCKTYPE = ''' + aLockType + ''',';
+  stSql := stSql + ' DE_LOCKMODE = ''' + aLockMode + ''',';
+  stSql := stSql + ' DE_LOCKTIME = ''' + aLockTime + ''',';
+  stSql := stSql + ' DE_SENSERTYPE = ''' + aSenserType + ''',';
+  stSql := stSql + ' DE_SENSERMODE = ''' + aSenserMode + ''',';
+  stSql := stSql + ' DE_SENSERTIME = ''' + aSenerTime + ''',';
+  stSql := stSql + ' BC_BUILDINGCODE = ' + aBuildingCode + ',';
+  stSql := stSql + ' BC_BUILDINGAREACODE = ' + aBuildingAreaCode + ',';
+  stSql := stSql + ' BC_BUILDINGFLOORCODE = ' + aBuildingFloorCode + ',';
+  stSql := stSql + ' DE_SEND = ''N'' ';
+  stSql := stSql + ' Where GROUP_CODE = ''' + G_stGroupCode + '''';
+  stSql := stSql + ' AND DE_SEQ = ' + aDoorCode + '';
+
+  result := dmDataBase.ProcessExecSQL(stSql);
+end;
+
+end.

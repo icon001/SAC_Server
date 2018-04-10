@@ -1,0 +1,418 @@
+unit uDBFunction;
+
+interface
+
+uses
+  System.SysUtils, System.Classes,Winapi.ActiveX,Data.Win.ADODB,DB;
+
+type
+  TdmDBFunction = class(TDataModule)
+  private
+    { Private declarations }
+  public
+    { Public declarations }
+    Function CheckTB_ADMIN_UserID(aAdminUserID:string):integer;
+    Function CheckTB_CARDPERMITGROUP_DoorSeq(aGroupCode,aDoorSeq:string):integer;
+    Function CheckTB_DEVICECARDNO_Key(aDeviceSeq,aCardNo:string):integer;
+
+    Function GetBuildingCode(aBuildingName:string):string;
+    Function GetNextBuildingAreaCode(aBuildingCode:string):string;
+    Function GetNextBuildingCode : string;
+    Function GetNextBuildingFloorCode : string;
+    Function GetNextCardGubunCode : string;
+    Function GetNextDeviceSeq : string;
+    Function GetNextGroupCode : string;
+  end;
+
+var
+  dmDBFunction: TdmDBFunction;
+
+implementation
+uses
+  uCommonVariable,
+  uDataBase;
+
+{%CLASSGROUP 'Vcl.Controls.TControl'}
+
+{$R *.dfm}
+
+{ TdmDBFunction }
+
+function TdmDBFunction.CheckTB_ADMIN_UserID(aAdminUserID: string): integer;
+var
+  stSql : string;
+  TempAdoQuery :TADOQuery;
+begin
+  result := -1;
+  stSql := ' select * from TB_ADMIN ';
+  stSql := stSql + ' Where AD_USERID = ''' + aAdminUserID + ''' ';
+
+  Try
+    CoInitialize(nil);
+    TempAdoQuery := TADOQuery.Create(nil);
+    TempAdoQuery.Connection := dmDataBase.ADOConnection;
+    TempAdoQuery.DisableControls;
+
+    with TempAdoQuery do
+    begin
+      Close;
+      Sql.Clear;
+      Sql.Text := stSql;
+
+      Try
+        Open;
+      Except
+        Exit;
+      End;
+      result := 0;
+      if recordCount < 1 then Exit;
+      result := 1;
+    end;
+  Finally
+    TempAdoQuery.EnableControls;
+    TempAdoQuery.Free;
+    CoUninitialize;
+  End;
+end;
+
+function TdmDBFunction.CheckTB_CARDPERMITGROUP_DoorSeq(aGroupCode,
+  aDoorSeq: string): integer;
+var
+  stSql : string;
+  TempAdoQuery :TADOQuery;
+begin
+  result := -1;
+  stSql := ' select * from TB_CARDPERMITGROUP ';
+  stSql := stSql + ' Where CA_GROUPCODE = ' + aGroupCode + ' ';
+  stSql := stSql + ' AND DE_SEQ = ' + aDoorSeq + ' ';
+
+  Try
+    CoInitialize(nil);
+    TempAdoQuery := TADOQuery.Create(nil);
+    TempAdoQuery.Connection := dmDataBase.ADOConnection;
+    TempAdoQuery.DisableControls;
+
+    with TempAdoQuery do
+    begin
+      Close;
+      Sql.Clear;
+      Sql.Text := stSql;
+
+      Try
+        Open;
+      Except
+        Exit;
+      End;
+      result := 0;
+      if recordCount < 1 then Exit;
+      result := 1;
+    end;
+  Finally
+    TempAdoQuery.EnableControls;
+    TempAdoQuery.Free;
+    CoUninitialize;
+  End;
+end;
+
+function TdmDBFunction.CheckTB_DEVICECARDNO_Key(aDeviceSeq,
+  aCardNo: string): integer;
+var
+  stSql : string;
+  TempAdoQuery :TADOQuery;
+begin
+  result := -1;
+  stSql := ' select * from TB_DEVICECARDNO ';
+  stSql := stSql + ' Where DE_SEQ = ' + aDeviceSeq + ' ';
+  stSql := stSql + ' AND CA_CARDNO = ''' + aCardNo + ''' ';
+
+  Try
+    CoInitialize(nil);
+    TempAdoQuery := TADOQuery.Create(nil);
+    TempAdoQuery.Connection := dmDataBase.ADOConnection;
+    TempAdoQuery.DisableControls;
+
+    with TempAdoQuery do
+    begin
+      Close;
+      Sql.Clear;
+      Sql.Text := stSql;
+
+      Try
+        Open;
+      Except
+        Exit;
+      End;
+      result := 0;
+      if recordCount < 1 then Exit;
+      result := 1;
+    end;
+  Finally
+    TempAdoQuery.EnableControls;
+    TempAdoQuery.Free;
+    CoUninitialize;
+  End;
+end;
+
+function TdmDBFunction.GetBuildingCode(aBuildingName: string): string;
+var
+  stSql : string;
+  TempAdoQuery :TADOQuery;
+begin
+  result := '';
+  stSql := 'select BC_BUILDINGCODE from TB_BUILDINGCODE ';
+  stSql := stSql + ' Where  GROUP_CODE = ''' + G_stGroupCode + ''' ';
+  stSql := stSql + ' AND  BC_BUILDINGNAME = ''' + aBuildingName + ''' ';
+
+  Try
+    CoInitialize(nil);
+    TempAdoQuery := TADOQuery.Create(nil);
+    TempAdoQuery.Connection := dmDataBase.ADOConnection;
+    TempAdoQuery.DisableControls;
+
+    with TempAdoQuery do
+    begin
+      Close;
+      Sql.Clear;
+      Sql.Text := stSql;
+
+      Try
+        Open;
+      Except
+        Exit;
+      End;
+      if recordCount < 1 then Exit;
+      if FindField('BC_BUILDINGCODE').IsNull then Exit;
+      result := FindField('BC_BUILDINGCODE').AsString;
+    end;
+  Finally
+    TempAdoQuery.EnableControls;
+    TempAdoQuery.Free;
+    CoUninitialize;
+  End;
+end;
+
+function TdmDBFunction.GetNextBuildingAreaCode(aBuildingCode: string): string;
+var
+  stSql : string;
+  TempAdoQuery :TADOQuery;
+begin
+  result := '1';
+  stSql := 'select MAX(BC_BUILDINGAREACODE) as BC_BUILDINGAREACODE from TB_BUILDINGAREACODE ';
+  stSql := stSql + ' Where  GROUP_CODE = ''' + G_stGroupCode + ''' ';
+  stSql := stSql + ' AND  BC_BUILDINGCODE = ' + aBuildingCode + ' ';
+
+  Try
+    CoInitialize(nil);
+    TempAdoQuery := TADOQuery.Create(nil);
+    TempAdoQuery.Connection := dmDataBase.ADOConnection;
+    TempAdoQuery.DisableControls;
+
+    with TempAdoQuery do
+    begin
+      Close;
+      Sql.Clear;
+      Sql.Text := stSql;
+
+      Try
+        Open;
+      Except
+        Exit;
+      End;
+      if recordCount < 1 then Exit;
+      if FindField('BC_BUILDINGAREACODE').IsNull then Exit;
+      result := inttostr(FindField('BC_BUILDINGAREACODE').AsInteger + 1);
+    end;
+  Finally
+    TempAdoQuery.EnableControls;
+    TempAdoQuery.Free;
+    CoUninitialize;
+  End;
+end;
+
+function TdmDBFunction.GetNextBuildingCode: string;
+var
+  stSql : string;
+  TempAdoQuery :TADOQuery;
+begin
+  result := '1';
+  stSql := 'select MAX(BC_BUILDINGCODE) as BC_BUILDINGCODE from TB_BUILDINGCODE ';
+  stSql := stSql + ' Where  GROUP_CODE = ''' + G_stGroupCode + ''' ';
+
+  Try
+    CoInitialize(nil);
+    TempAdoQuery := TADOQuery.Create(nil);
+    TempAdoQuery.Connection := dmDataBase.ADOConnection;
+    TempAdoQuery.DisableControls;
+
+    with TempAdoQuery do
+    begin
+      Close;
+      Sql.Clear;
+      Sql.Text := stSql;
+
+      Try
+        Open;
+      Except
+        Exit;
+      End;
+      if recordCount < 1 then Exit;
+      if FindField('BC_BUILDINGCODE').IsNull then Exit;
+      result := inttostr(FindField('BC_BUILDINGCODE').AsInteger + 1);
+    end;
+  Finally
+    TempAdoQuery.EnableControls;
+    TempAdoQuery.Free;
+    CoUninitialize;
+  End;
+end;
+
+function TdmDBFunction.GetNextBuildingFloorCode: string;
+var
+  stSql : string;
+  TempAdoQuery :TADOQuery;
+begin
+  result := '1';
+  stSql := 'select MAX(BC_BUILDINGFLOORCODE) as BC_BUILDINGFLOORCODE from TB_BUILDINGFLOORCODE ';
+  stSql := stSql + ' Where  GROUP_CODE = ''' + G_stGroupCode + ''' ';
+
+  Try
+    CoInitialize(nil);
+    TempAdoQuery := TADOQuery.Create(nil);
+    TempAdoQuery.Connection := dmDataBase.ADOConnection;
+    TempAdoQuery.DisableControls;
+
+    with TempAdoQuery do
+    begin
+      Close;
+      Sql.Clear;
+      Sql.Text := stSql;
+
+      Try
+        Open;
+      Except
+        Exit;
+      End;
+      if recordCount < 1 then Exit;
+      if FindField('BC_BUILDINGFLOORCODE').IsNull then Exit;
+      result := inttostr(FindField('BC_BUILDINGFLOORCODE').AsInteger + 1);
+    end;
+  Finally
+    TempAdoQuery.EnableControls;
+    TempAdoQuery.Free;
+    CoUninitialize;
+  End;
+end;
+
+function TdmDBFunction.GetNextCardGubunCode: string;
+var
+  stSql : string;
+  TempAdoQuery :TADOQuery;
+begin
+  result := '1';
+  stSql := 'select MAX(CA_GUBUN) as CA_GUBUN from TB_CARDGUBUNCODE ';
+  stSql := stSql + ' Where  GROUP_CODE = ''' + G_stGroupCode + ''' ';
+
+  Try
+    CoInitialize(nil);
+    TempAdoQuery := TADOQuery.Create(nil);
+    TempAdoQuery.Connection := dmDataBase.ADOConnection;
+    TempAdoQuery.DisableControls;
+
+    with TempAdoQuery do
+    begin
+      Close;
+      Sql.Clear;
+      Sql.Text := stSql;
+
+      Try
+        Open;
+      Except
+        Exit;
+      End;
+      if recordCount < 1 then Exit;
+      if FindField('CA_GUBUN').IsNull then Exit;
+      result := inttostr(FindField('CA_GUBUN').AsInteger + 1);
+    end;
+  Finally
+    TempAdoQuery.EnableControls;
+    TempAdoQuery.Free;
+    CoUninitialize;
+  End;
+end;
+
+function TdmDBFunction.GetNextDeviceSeq: string;
+var
+  stSql : string;
+  TempAdoQuery :TADOQuery;
+begin
+  result := '1';
+  stSql := 'select MAX(DE_SEQ) as DE_SEQ from TB_DEVICE ';
+  stSql := stSql + ' Where  GROUP_CODE = ''' + G_stGroupCode + ''' ';
+
+  Try
+    CoInitialize(nil);
+    TempAdoQuery := TADOQuery.Create(nil);
+    TempAdoQuery.Connection := dmDataBase.ADOConnection;
+    TempAdoQuery.DisableControls;
+
+    with TempAdoQuery do
+    begin
+      Close;
+      Sql.Clear;
+      Sql.Text := stSql;
+
+      Try
+        Open;
+      Except
+        Exit;
+      End;
+      if recordCount < 1 then Exit;
+      if FindField('DE_SEQ').IsNull then Exit;
+      result := inttostr(FindField('DE_SEQ').AsInteger + 1);
+    end;
+  Finally
+    TempAdoQuery.EnableControls;
+    TempAdoQuery.Free;
+    CoUninitialize;
+  End;
+end;
+
+
+function TdmDBFunction.GetNextGroupCode: string;
+var
+  stSql : string;
+  TempAdoQuery :TADOQuery;
+begin
+  result := '1';
+  stSql := 'select MAX(CA_GROUPCODE) as CA_GROUPCODE from TB_CARDGROUPCODE ';
+  stSql := stSql + ' Where  GROUP_CODE = ''' + G_stGroupCode + ''' ';
+
+  Try
+    CoInitialize(nil);
+    TempAdoQuery := TADOQuery.Create(nil);
+    TempAdoQuery.Connection := dmDataBase.ADOConnection;
+    TempAdoQuery.DisableControls;
+
+    with TempAdoQuery do
+    begin
+      Close;
+      Sql.Clear;
+      Sql.Text := stSql;
+
+      Try
+        Open;
+      Except
+        Exit;
+      End;
+      if recordCount < 1 then Exit;
+      if FindField('CA_GROUPCODE').IsNull then Exit;
+      result := inttostr(FindField('CA_GROUPCODE').AsInteger + 1);
+    end;
+  Finally
+    TempAdoQuery.EnableControls;
+    TempAdoQuery.Free;
+    CoUninitialize;
+  End;
+end;
+
+end.

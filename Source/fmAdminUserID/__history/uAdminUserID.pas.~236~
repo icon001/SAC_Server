@@ -1,0 +1,460 @@
+﻿unit uAdminUserID;
+
+interface
+
+uses
+  Winapi.Windows, Winapi.Messages, System.SysUtils, System.Variants, System.Classes, Vcl.Graphics,
+  Vcl.Controls, Vcl.Forms, Vcl.Dialogs,uSubForm, AdvOfficeTabSet,
+  AdvOfficeTabSetStylers, CommandArray, Vcl.Grids, AdvObj, BaseGrid, AdvGrid,
+  Vcl.StdCtrls, AdvEdit, Vcl.Buttons, AdvSmoothLabel, AdvSmoothPanel, W7Classes,
+  W7Panels, AdvGlassButton,ADODB,ActiveX, AdvGroupBox, Vcl.ExtCtrls,
+  AdvSmoothScrollBar, Vcl.ComCtrls, AdvEdBtn, AdvOfficeButtons, Vcl.ImgList,
+  AdvToolBar, AdvToolBarStylers, Vcl.Imaging.pngimage, AdvGlowButton,
+  AdvOfficePager, Vcl.Menus, AdvAppStyler, AdvOfficePagerStylers;
+
+const
+  con_LocalCompanyImageIndex = 0;
+  con_LocalEmployeeImageIndex = 1;
+  con_LocalBuildingImageIndex = 2;
+
+type
+  TfmAdminUserID = class(TfmASubForm)
+    List: TAdvSmoothPanel;
+    lb_SearchName: TAdvSmoothLabel;
+    ed_SearchName: TAdvEdit;
+    sg_List: TAdvStringGrid;
+    btn_Search: TAdvGlassButton;
+    Add: TAdvSmoothPanel;
+    lb_AddName: TAdvSmoothLabel;
+    ed_AdminName: TAdvEdit;
+    lb_AddID: TAdvSmoothLabel;
+    ed_AdminID: TAdvEdit;
+    lb_Addpw: TAdvSmoothLabel;
+    ed_AdminPassword: TAdvEdit;
+    MenuImageList16: TImageList;
+    AdvOfficePager1: TAdvOfficePager;
+    AdvOfficePage1: TAdvOfficePage;
+    btn_minimize: TAdvGlowButton;
+    btn_Close: TAdvGlowButton;
+    lb_List: TLabel;
+    btn_Add: TAdvGlowButton;
+    btn_Update: TAdvGlowButton;
+    btn_Delete: TAdvGlowButton;
+    pm_Work: TPopupMenu;
+    pm_AddCode: TMenuItem;
+    pm_UpdateCode: TMenuItem;
+    pm_DeleteCode: TMenuItem;
+    btn_Save: TAdvGlowButton;
+    btn_Cancel: TAdvGlowButton;
+    lb_WorkType: TLabel;
+    AdvOfficePagerOfficeStyler1: TAdvOfficePagerOfficeStyler;
+    AdvFormStyler1: TAdvFormStyler;
+    AdvOfficeTabSetOfficeStyler1: TAdvOfficeTabSetOfficeStyler;
+    chk_Master: TAdvOfficeCheckBox;
+    procedure FormShow(Sender: TObject);
+    procedure FormClose(Sender: TObject; var Action: TCloseAction);
+    procedure btn_AddClick(Sender: TObject);
+    procedure FormResize(Sender: TObject);
+    procedure btn_SearchClick(Sender: TObject);
+    procedure FormCreate(Sender: TObject);
+    procedure sg_ListCheckBoxClick(Sender: TObject; ACol, ARow: Integer;
+      State: Boolean);
+    procedure sg_ListDblClick(Sender: TObject);
+    procedure ed_SearchNameChange(Sender: TObject);
+    procedure btn_DeleteClick(Sender: TObject);
+    procedure ed_AdminNameKeyPress(Sender: TObject; var Key: Char);
+    procedure pm_AddCodeClick(Sender: TObject);
+    procedure btn_UpdateClick(Sender: TObject);
+    procedure pm_UpdateCodeClick(Sender: TObject);
+    procedure pm_DeleteCodeClick(Sender: TObject);
+    procedure btn_SaveClick(Sender: TObject);
+    procedure btn_CancelClick(Sender: TObject);
+    procedure btn_CloseClick(Sender: TObject);
+    procedure btn_minimizeClick(Sender: TObject);
+  private
+    L_nPageListMaxCount : integer;
+    L_nCheckCount : integer;
+    L_stAllName : string;
+    L_stWork : string;
+    L_stMenuID :string;
+    L_stButtonCloseCaption : string;
+    L_stButtonPrevCaption : string;
+    { Private declarations }
+    Function SearchList(aCurrentCode:string;aTopRow:integer = 0):Boolean;
+  private
+    procedure AdvStrinGridSetAllCheck(Sender: TObject;bchkState:Boolean);
+
+  public
+    { Public declarations }
+    procedure FormChangeEvent(aFormName:integer);
+    procedure FormGradeRefresh;
+    procedure FormIDSetting(aID:string);
+  end;
+
+var
+  fmAdminUserID: TfmAdminUserID;
+
+implementation
+uses
+  uComboBoxCodeLoad,
+  uCommonFunction,
+  uCommonVariable,
+  uDataBase,
+  uDBDelete,
+  uDBInsert,
+  uDBUpdate,
+  uDBFunction,
+  uDBSelect,
+  uDBVariable,
+  uFormVariable,
+  uMain;
+{$R *.dfm}
+
+procedure TfmAdminUserID.AdvStrinGridSetAllCheck(Sender: TObject;
+  bchkState: Boolean);
+var
+  i : integer;
+begin
+    for i:= 1 to (Sender as TAdvStringGrid).RowCount - 1  do
+    begin
+      (Sender as TAdvStringGrid).SetCheckBoxState(0,i,bchkState);
+    end;
+
+end;
+
+procedure TfmAdminUserID.btn_AddClick(Sender: TObject);
+begin
+  inherited;
+  pm_AddCodeClick(pm_AddCode);
+end;
+
+procedure TfmAdminUserID.btn_CancelClick(Sender: TObject);
+begin
+  inherited;
+  Add.Visible := False;
+end;
+
+procedure TfmAdminUserID.btn_CloseClick(Sender: TObject);
+begin
+  inherited;
+  Close;
+end;
+
+procedure TfmAdminUserID.btn_minimizeClick(Sender: TObject);
+begin
+  inherited;
+  windowState := wsNormal;
+end;
+
+procedure TfmAdminUserID.btn_DeleteClick(Sender: TObject);
+begin
+  inherited;
+  pm_DeleteCodeClick(pm_DeleteCode);
+end;
+
+procedure TfmAdminUserID.btn_SaveClick(Sender: TObject);
+var
+  bResult : boolean;
+  stMaster : string;
+  stMessage : string;
+begin
+  if chk_Master.Checked then stMaster := '1'
+  else stMaster := '0';
+
+  if UpperCase(L_stWork) = 'ADD' then
+  begin
+    if dmDBFunction.CheckTB_ADMIN_UserID(ed_AdminID.Text) = 1 then
+    begin
+      stMessage := '같은 아이디의 관리자가 존재합니다.';
+      Application.MessageBox(PChar(stMessage),'Error',MB_OK);
+      Exit;
+    end;
+    bResult := dmDBInsert.InsertIntoTB_ADMIN_All(ed_AdminID.Text,ed_AdminPassword.Text,ed_AdminName.Text,stMaster,'0',
+                              '0','0','0');
+  end else if UpperCase(L_stWork) = 'UPDATE' then
+  begin
+    dmDBUpdate.UpdateTB_ADMIN_Field_StringValue(ed_AdminID.Text,'AD_USERNAME',ed_AdminName.Text);
+    dmDBUpdate.UpdateTB_ADMIN_Field_StringValue(ed_AdminID.Text,'AD_USERPW',ed_AdminPassword.Text);
+    dmDBUpdate.UpdateTB_ADMIN_Field_StringValue(ed_AdminID.Text,'AD_MASTER',stMaster);
+  end;
+  if bResult then
+  begin
+    L_stWork := '';
+    Add.Visible := False;
+    SearchList(ed_AdminID.Text);
+  end else showmessage('데이터 저장 실패');
+end;
+
+procedure TfmAdminUserID.btn_SearchClick(Sender: TObject);
+begin
+  inherited;
+  SearchList('');
+end;
+
+procedure TfmAdminUserID.btn_UpdateClick(Sender: TObject);
+begin
+  inherited;
+  sg_ListDblClick(sg_List);
+end;
+
+procedure TfmAdminUserID.ed_AdminNameKeyPress(Sender: TObject; var Key: Char);
+begin
+  inherited;
+  if key = #13 then
+  begin
+    key := #0;
+    Perform(WM_NEXTDLGCTL,0,0);
+  end;
+
+end;
+
+procedure TfmAdminUserID.ed_SearchNameChange(Sender: TObject);
+begin
+  inherited;
+  SearchList('');
+end;
+
+
+procedure TfmAdminUserID.FormChangeEvent(aFormName: integer);
+var
+  stCode : string;
+  nIndex : integer;
+begin
+
+end;
+
+procedure TfmAdminUserID.FormClose(Sender: TObject; var Action: TCloseAction);
+begin
+  inherited;
+  fmMain.FORMENABLE(con_FormADMINUSERID,'FALSE');
+
+  Action := caFree;
+end;
+
+procedure TfmAdminUserID.FormCreate(Sender: TObject);
+begin
+  inherited;
+  L_nPageListMaxCount := 17;
+end;
+
+procedure TfmAdminUserID.FormGradeRefresh;
+begin
+  btn_Add.Enabled := IsInsertGrade;
+  btn_Update.Enabled := IsUpdateGrade;
+  btn_Delete.Enabled := IsDeleteGrade;
+end;
+
+procedure TfmAdminUserID.FormIDSetting(aID: string);
+begin
+  L_stMenuID := aID;
+end;
+
+procedure TfmAdminUserID.FormResize(Sender: TObject);
+begin
+  inherited;
+  btn_Close.Left := AdvOfficePager1.Width - btn_Close.Width - 10;
+  btn_minimize.Left := btn_Close.Left - btn_minimize.Width - 2;
+
+  sg_List.Height := List.Height - sg_List.Top - 30;
+  sg_List.Width := List.Width - (sg_List.Left * 2);
+  sg_List.ColWidths[3] := sg_List.Width - (sg_List.ColWidths[0] + sg_List.ColWidths[1] + sg_List.ColWidths[2]);
+
+  Add.Left := (Width div 2) - (Add.Width div 2);
+  Add.top := (Height div 2) - (Add.Height div 2);
+
+  if Windowstate = wsMaximized then
+  begin
+    btn_minimize.Visible := True;
+    btn_Close.Visible := True;
+  end else
+  begin
+    btn_minimize.Visible := False;
+    btn_Close.Visible := False;
+  end;
+
+end;
+
+procedure TfmAdminUserID.FormShow(Sender: TObject);
+begin
+  inherited;
+  WindowState := wsMaximized;
+
+  fmMain.FORMENABLE(con_FormADMINUSERID,'TRUE');
+
+  SearchList('');
+
+end;
+
+procedure TfmAdminUserID.pm_AddCodeClick(Sender: TObject);
+var
+  stBuildingCode : string;
+begin
+  inherited;
+  L_stWork := 'ADD';
+  Add.Visible := True;
+  ed_AdminID.Enabled := True;
+  ed_AdminID.Text := '';
+  ed_AdminPassword.Text := '';
+  ed_AdminName.Text := '';
+  stBuildingCode := '';
+  chk_Master.Checked := False;
+
+  lb_WorkType.Caption := pm_AddCode.Caption;
+
+end;
+
+procedure TfmAdminUserID.pm_DeleteCodeClick(Sender: TObject);
+var
+  i : integer;
+  bChkState : Boolean;
+  stMessage : string;
+begin
+  inherited;
+  stMessage := '삭제할 코드가 선택되지 않았습니다.';
+  stMessage := stringReplace(stMessage,'$WORK',pm_DeleteCode.Caption,[rfReplaceAll]);
+  if L_nCheckCount = 0 then
+  begin
+    Application.MessageBox(PChar(stMessage),'Information',MB_OK);
+    Exit;
+  end;
+  stMessage := stringReplace('선택된 관리자아이디를 삭제하시겠습니까?','$WORK',pm_DeleteCode.Caption,[rfReplaceAll]);
+  if (Application.MessageBox(PChar(stMessage),'Information',MB_OKCANCEL) = IDCANCEL)  then Exit;
+  With sg_List do
+  begin
+    for i := 1 to RowCount - 1 do
+    begin
+      GetCheckBoxState(0,i, bChkState);
+      if bChkState then
+      begin
+        dmDBDelete.DeleteTB_ADMIN_UserID(cells[1,i]);
+      end;
+    end;
+  end;
+  SearchList('');
+
+end;
+
+procedure TfmAdminUserID.pm_UpdateCodeClick(Sender: TObject);
+begin
+  inherited;
+  sg_ListDblClick(sg_List);
+end;
+
+function TfmAdminUserID.SearchList(aCurrentCode:string;aTopRow:integer = 0): Boolean;
+var
+  stSql : string;
+  TempAdoQuery : TADOQuery;
+  nRow : integer;
+begin
+  GridInit(sg_List,4,2,true);
+  stSql := dmDBSelect.SelectTB_ADMIN_UserName(ed_SearchName.Text);
+  L_nCheckCount := 0;
+
+  Try
+    CoInitialize(nil);
+    TempAdoQuery := TADOQuery.Create(nil);
+    TempAdoQuery.Connection := dmDataBase.ADOConnection;
+    TempAdoQuery.DisableControls;
+
+    with TempAdoQuery do
+    begin
+      Close;
+      sql.Text := stSql;
+      Try
+        Open;
+      Except
+        Exit;
+      End;
+      if recordcount < 1 then Exit;
+      with sg_List do
+      begin
+        nRow := 1;
+        RowCount := RecordCount + 1;
+        while Not Eof do
+        begin
+          AddCheckBox(0,nRow,False,False);
+          cells[1,nRow] := FindField('AD_USERID').AsString;
+          cells[2,nRow] := FindField('AD_USERNAME').AsString;
+          cells[3,nRow] := FindField('AD_USERPW').AsString;
+          cells[4,nRow] := FindField('AD_MASTER').AsString;
+          if (FindField('AD_USERID').AsString )  = aCurrentCode then
+          begin
+            SelectRows(nRow,1);
+          end;
+
+          nRow := nRow + 1;
+          Next;
+        end;
+        if aTopRow = 0 then
+        begin
+          if Row > (L_nPageListMaxCount - 1) then TopRow := Row - L_nPageListMaxCount;
+        end else
+        begin
+          TopRow := aTopRow;
+        end;
+      end;
+    end;
+  Finally
+    TempAdoQuery.EnableControls;
+    TempAdoQuery.Free;
+    CoUninitialize;
+  End;
+end;
+
+
+procedure TfmAdminUserID.sg_ListCheckBoxClick(Sender: TObject; ACol,
+  ARow: Integer; State: Boolean);
+begin
+  inherited;
+  if ARow = 0 then //전체선택 또는 해제
+  begin
+    if State then L_nCheckCount := (Sender as TAdvStringGrid).RowCount - 1
+    else L_nCheckCount := 0;
+    AdvStrinGridSetAllCheck(Sender,State);
+  end else
+  begin
+    if State then L_nCheckCount := L_nCheckCount + 1
+    else L_nCheckCount := L_nCheckCount - 1 ;
+  end;
+end;
+
+procedure TfmAdminUserID.sg_ListDblClick(Sender: TObject);
+var
+  nIndex : integer;
+  vNode1: TTreeNode;
+  stMessage : string;
+begin
+  inherited;
+  L_stWork := 'UPDATE';
+  Try
+    with sg_List do
+    begin
+      if cells[1,Row] = '' then
+      begin
+        Exit;
+      end;
+      Add.Visible := True;
+      ed_AdminID.Enabled := False;
+      ed_AdminID.Text := cells[1,Row];
+      ed_AdminName.Text := cells[2,Row];
+      ed_AdminPassword.Text := cells[3,Row];
+      if cells[4,Row] = '1' then
+      begin
+        chk_Master.Checked := True;
+      end else
+      begin
+        chk_Master.Checked := False;
+      end;
+    end;
+    lb_WorkType.Caption := btn_Update.Caption;
+  Except
+    Exit;
+  End;
+end;
+
+initialization
+  RegisterClass(TfmAdminUserID);
+Finalization
+  UnRegisterClass(TfmAdminUserID);
+
+end.

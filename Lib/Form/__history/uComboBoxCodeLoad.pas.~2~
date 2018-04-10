@@ -1,0 +1,25 @@
+unit uComboBoxCodeLoad;
+
+interface
+
+uses
+  System.SysUtils, System.Classes;
+
+type
+  TdmComboBoxCodeLoad = class(TDataModule)
+  private
+    { Private declarations }
+  public
+    { Public declarations }
+  end;
+
+var
+  dmComboBoxCodeLoad: TdmComboBoxCodeLoad;
+
+implementation
+
+{%CLASSGROUP 'Vcl.Controls.TControl'}
+
+{$R *.dfm}
+
+end.

@@ -1,0 +1,1082 @@
+﻿unit uCardAdmin;
+
+interface
+
+uses
+  Winapi.Windows, Winapi.Messages, System.SysUtils, System.Variants, System.Classes, Vcl.Graphics,
+  Vcl.Controls, Vcl.Forms, Vcl.Dialogs,uSubForm, AdvOfficeTabSet,
+  AdvOfficeTabSetStylers, CommandArray, Vcl.Grids, AdvObj, BaseGrid, AdvGrid,
+  Vcl.StdCtrls, AdvEdit, Vcl.Buttons, AdvSmoothLabel, AdvSmoothPanel, W7Classes,
+  W7Panels, AdvGlassButton,ADODB,ActiveX, frmshape, Vcl.Mask, AdvSpin,
+  DBAdvSmoothLabel, AdvSmoothProgressBar, Vcl.ExtCtrls, AdvCombo, AdvGlowButton,
+  AdvOfficePager, Vcl.Imaging.pngimage, Vcl.Menus, AdvOfficePagerStylers,
+  AdvAppStyler, Vcl.ComCtrls,System.DateUtils, AdvOfficeButtons;
+
+type
+  TfmCardAdmin = class(TfmASubForm)
+    BodyPanel: TAdvSmoothPanel;
+    lb_SearchName: TAdvSmoothLabel;
+    ed_SearchName: TAdvEdit;
+    sg_List: TAdvStringGrid;
+    btn_Search: TAdvGlassButton;
+    AdvOfficePager1: TAdvOfficePager;
+    AdvOfficePage1: TAdvOfficePage;
+    btn_minimize: TAdvGlowButton;
+    btn_Close: TAdvGlowButton;
+    lb_List: TLabel;
+    btn_Add: TAdvGlowButton;
+    btn_Update: TAdvGlowButton;
+    btn_Delete: TAdvGlowButton;
+    pm_Work: TPopupMenu;
+    pm_CodeAdd: TMenuItem;
+    pm_UpdateCode: TMenuItem;
+    pm_DeleteCode: TMenuItem;
+    AdvFormStyler1: TAdvFormStyler;
+    AdvOfficePagerOfficeStyler1: TAdvOfficePagerOfficeStyler;
+    AdvOfficeTabSetOfficeStyler1: TAdvOfficeTabSetOfficeStyler;
+    AdvSmoothLabel2: TAdvSmoothLabel;
+    cmb_SearchBuilding: TAdvComboBox;
+    AdvSmoothLabel3: TAdvSmoothLabel;
+    cmb_SearchBuildingArea: TAdvComboBox;
+    AdvSmoothLabel4: TAdvSmoothLabel;
+    ed_UserName: TAdvEdit;
+    AdvSmoothLabel5: TAdvSmoothLabel;
+    cmb_SearchCardGubun: TAdvComboBox;
+    Add: TAdvSmoothPanel;
+    lb_AddBuildingName: TAdvSmoothLabel;
+    lb_WorkType: TLabel;
+    AdvSmoothLabel1: TAdvSmoothLabel;
+    AdvSmoothLabel6: TAdvSmoothLabel;
+    AdvSmoothLabel7: TAdvSmoothLabel;
+    AdvSmoothLabel8: TAdvSmoothLabel;
+    AdvSmoothLabel9: TAdvSmoothLabel;
+    AdvSmoothLabel10: TAdvSmoothLabel;
+    AdvSmoothLabel11: TAdvSmoothLabel;
+    AdvSmoothLabel12: TAdvSmoothLabel;
+    lb_GroupCode: TAdvSmoothLabel;
+    ed_AddCardName: TAdvEdit;
+    btn_Save: TAdvGlowButton;
+    btn_Cancel: TAdvGlowButton;
+    ed_CardNo: TAdvEdit;
+    cmb_AddCardGubun: TAdvComboBox;
+    cmb_AddBuildingCode: TAdvComboBox;
+    cmb_AddBuildingAreaCode: TAdvComboBox;
+    ed_Addr: TAdvEdit;
+    dt_Indate: TDateTimePicker;
+    dt_OutDate: TDateTimePicker;
+    cmb_GradeType: TAdvComboBox;
+    cmb_AddGroupCode: TAdvComboBox;
+    sg_CardGrade: TAdvStringGrid;
+    pan_GroupApply: TAdvSmoothPanel;
+    Label1: TLabel;
+    AdvSmoothLabel13: TAdvSmoothLabel;
+    cmb_TotGroupCode: TAdvComboBox;
+    btn_GroupApply: TAdvGlowButton;
+    btn_GroupApplyCancel: TAdvGlowButton;
+    chk_AllGroupGrade: TAdvOfficeCheckBox;
+    btn_GroupManage: TAdvGlowButton;
+    AdvSmoothLabel14: TAdvSmoothLabel;
+    cmb_GroupBuildingCode: TAdvComboBox;
+    AdvSmoothLabel15: TAdvSmoothLabel;
+    cmb_GroupBuildingAreaCode: TAdvComboBox;
+    AdvSmoothLabel16: TAdvSmoothLabel;
+    ed_SearchCardNo: TAdvEdit;
+    procedure FormShow(Sender: TObject);
+    procedure FormClose(Sender: TObject; var Action: TCloseAction);
+    procedure btn_AddClick(Sender: TObject);
+    procedure FormResize(Sender: TObject);
+    procedure btn_SearchClick(Sender: TObject);
+    procedure FormCreate(Sender: TObject);
+    procedure sg_ListCheckBoxClick(Sender: TObject; ACol, ARow: Integer;
+      State: Boolean);
+    procedure sg_ListDblClick(Sender: TObject);
+    procedure ed_SearchNameChange(Sender: TObject);
+    procedure btn_DeleteClick(Sender: TObject);
+    procedure CommandArrayCommandsTGRADEREFRESHExecute(Command: TCommand;
+      Params: TStringList);
+    procedure CommandArrayCommandsTMENUIDExecute(Command: TCommand;
+      Params: TStringList);
+    procedure CommandArrayCommandsTFORMNAMEExecute(Command: TCommand;
+      Params: TStringList);
+    procedure pm_CodeAddClick(Sender: TObject);
+    procedure btn_CancelClick(Sender: TObject);
+    procedure btn_SaveClick(Sender: TObject);
+    procedure btn_UpdateClick(Sender: TObject);
+    procedure pm_UpdateCodeClick(Sender: TObject);
+    procedure btn_CloseClick(Sender: TObject);
+    procedure btn_minimizeClick(Sender: TObject);
+    procedure ed_AddCardNameKeyPress(Sender: TObject; var Key: Char);
+    procedure cmb_SearchBuildingChange(Sender: TObject);
+    procedure cmb_GradeTypeChange(Sender: TObject);
+    procedure cmb_AddBuildingCodeChange(Sender: TObject);
+    procedure sg_CardGradeCheckBoxClick(Sender: TObject; ACol, ARow: Integer;
+      State: Boolean);
+    procedure cmb_SearchCardGubunChange(Sender: TObject);
+    procedure cmb_SearchBuildingAreaChange(Sender: TObject);
+    procedure btn_GroupManageClick(Sender: TObject);
+    procedure btn_GroupApplyCancelClick(Sender: TObject);
+    procedure btn_GroupApplyClick(Sender: TObject);
+    procedure cmb_GroupBuildingCodeChange(Sender: TObject);
+    procedure ed_CardNoKeyDown(Sender: TObject; var Key: Word;
+      Shift: TShiftState);
+  private
+    AddCardGubunCodeList : TStringList;
+    AddGroupCodeList : TStringList;
+    AddBuildingCodeList : TSTringList;
+    AddBuildingAreaCodeList:TStringList;
+    SearchCardGubunCodeList : TStringList;
+    SearchBuildingCodeList : TSTringList;
+    SearchBuildingAreaCodeList:TStringList;
+    TotGroupCodeList : TStringList;
+    TotGroupBuildingCodeList: TStringList;
+    TotGroupBuildingAreaCodeList: TStringList;
+
+    L_nPageListMaxCount : integer;
+    L_nCheckCount : integer;
+    L_nProgress : integer;
+    L_stMenuID : string;
+    L_stOldStartDay : string;
+    L_stOldEndDay : string;
+    L_stButtonCloseCaption : string;
+    L_stButtonPreCaption : string;
+    L_stNodeAddCaption : string;
+    L_stNodeUpdateCaption : string;
+    L_stWork : string;
+    { Private declarations }
+    Function FormNameSetting:Boolean;
+    Function SearchList(aCardNum:string;aTopRow:integer = 0):Boolean;
+    procedure CardGradeSetting(aCardNo:string);
+    Function AddCardNo:Boolean;
+    Function UpdateCardNo:Boolean;
+    Function CardDeviceGrade(aCardNo:string):Boolean;
+    Function CardGroupGrade(aCardNo,aGroupCode:string):Boolean;
+
+  private
+    procedure AdvStrinGridSetAllCheck(Sender: TObject;bchkState:Boolean);
+
+  public
+    { Public declarations }
+    procedure FormChangeEvent(aFormName:integer);
+    procedure CardRegistEvent(aCardNo:string);
+  end;
+
+var
+  fmCardAdmin: TfmCardAdmin;
+
+implementation
+uses
+  uCardPermit,
+  uCommonFunction,
+  uCommonVariable,
+  uDataBase,
+  uDBDelete,
+  uDBFunction,
+  uDBInsert,
+  uDBUpdate,
+  uDBSelect,
+  uDBVariable,
+  uComboBoxCodeLoad,
+  uFormVariable,
+  uMain;
+
+{$R *.dfm}
+
+
+
+function TfmCardAdmin.AddCardNo: Boolean;
+var
+  stBuildingCode : string;
+  stBuildingAreaCode : string;
+  stCardGubunCode : string;
+  stCardGroupCode : string;
+  stStartDate : string;
+  stEndDate : string;
+  stMessage : string;
+begin
+  if cmb_AddCardGubun.ItemIndex > -1 then
+     stCardGubunCode := AddCardGubunCodeList.Strings[cmb_AddCardGubun.ItemIndex];
+  if cmb_AddBuildingCode.ItemIndex > -1 then
+     stBuildingCode := AddBuildingCodeList.Strings[cmb_AddBuildingCode.ItemIndex];
+  if cmb_AddBuildingAreaCode.ItemIndex > -1 then
+     stBuildingAreaCode := AddBuildingAreaCodeList.Strings[cmb_AddBuildingAreaCode.ItemIndex];
+  if cmb_AddGroupCode.ItemIndex > -1 then
+     stCardGroupCode := AddGroupCodeList.Strings[cmb_AddGroupCode.ItemIndex];
+
+  if cmb_GradeType.ItemIndex < 0 then cmb_GradeType.ItemIndex := 1;
+
+  if Not isDigit(stCardGubunCode) then stCardGubunCode := '0';
+  if Not isDigit(stBuildingCode) then stBuildingCode := '0';
+  if Not isDigit(stBuildingAreaCode) then stBuildingAreaCode := '0';
+  if Not isDigit(stCardGroupCode) then stCardGroupCode := '0';
+  stStartDate := FormatDateTime('yyyymmdd',dt_Indate.Date);
+  stEndDate := FormatDateTime('yyyymmdd',dt_OutDate.Date);
+  if stStartDate >= stEndDate  then
+  begin
+    showmessage('유효기간이 등록일자보다 작을 수 없습니다.');
+    Exit;
+  end;
+
+  if dmDBFunction.CheckTB_CARD_Key(ed_CardNo.Text) = 1 then
+  begin
+    showmessage('이미 등록된 카드번호가 존재합니다.');
+    Exit;
+  end;
+
+  if Not dmDBInsert.InsertIntoTB_CARD_Value(ed_CardNo.Text,'1',ed_AddCardName.text,stCardGubunCode,stBuildingCode,stBuildingAreaCode,'0',ed_Addr.Text,inttostr(cmb_GradeType.ItemIndex),stCardGroupCode,stStartDate,stEndDate,'N','N') then
+  begin
+    stMessage := stringReplace('저장 실패','$WORK',btn_Save.Caption,[rfReplaceAll]);
+    Application.MessageBox(PChar(stMessage),'Error',MB_OK);
+    Exit;
+  end;
+  result := True;
+
+end;
+
+procedure TfmCardAdmin.AdvStrinGridSetAllCheck(Sender: TObject;
+  bchkState: Boolean);
+var
+  i : integer;
+begin
+    for i:= 1 to (Sender as TAdvStringGrid).RowCount - 1  do
+    begin
+      (Sender as TAdvStringGrid).SetCheckBoxState(0,i,bchkState);
+    end;
+end;
+
+procedure TfmCardAdmin.btn_AddClick(Sender: TObject);
+begin
+  inherited;
+  pm_CodeAddClick(pm_CodeAdd);
+end;
+
+procedure TfmCardAdmin.btn_CancelClick(Sender: TObject);
+begin
+  inherited;
+  Add.Visible := False;
+end;
+
+procedure TfmCardAdmin.btn_CloseClick(Sender: TObject);
+begin
+  inherited;
+  Close;
+end;
+
+procedure TfmCardAdmin.btn_DeleteClick(Sender: TObject);
+var
+  i : integer;
+  bChkState : Boolean;
+  stMessage : string;
+  stClientIP : string;
+  stTime : string;
+  nIndex : integer;
+begin
+  inherited;
+  stClientIP:= GetLocalIPAddr;
+  stTime := FormatDateTime('yyyymmddhhnnsszzz',now);
+  stMessage := stringReplace('삭제할 데이터를 선택하세요','$WORK',btn_Delete.Caption,[rfReplaceAll]);
+  if L_nCheckCount = 0 then
+  begin
+    Application.MessageBox(PChar(stMessage),'Information',MB_OK);
+    Exit;
+  end;
+  stMessage := stringReplace('$COUNT건의 데이터를 $WORK 하시겠습니까?','$WORK',btn_Delete.Caption,[rfReplaceAll]);
+  stMessage := stringReplace(stMessage,'$COUNT',inttostr(L_nCheckCount),[rfReplaceAll]);
+  if (Application.MessageBox(PChar(stMessage),'Information',MB_OKCANCEL) = IDCANCEL)  then Exit;
+  stMessage := stringReplace('정말 삭제 하시겠습니까?','$WORK',btn_Delete.Caption,[rfReplaceAll]);
+  if (Application.MessageBox(PChar(stMessage),'Information',MB_OKCANCEL) = IDCANCEL)  then Exit;
+  With sg_List do
+  begin
+    for i := 1 to RowCount - 1 do
+    begin
+      GetCheckBoxState(0,i, bChkState);
+      if bChkState then
+      begin
+        dmDBDelete.DeleteTB_CARD_Value(cells[1,i]);
+        dmDBUpdate.UpdateTB_DEVICECARDNO_CardPermit(cells[1,i],'0'); //카드 정지
+        nIndex := CardNameList.IndexOf(cells[1,i]);
+        if nIndex > -1 then
+        begin
+          CardNameList.Delete(nIndex);
+        end;
+        Application.ProcessMessages;
+      end;
+    end;
+  end;
+  SearchList('');
+end;
+
+procedure TfmCardAdmin.btn_GroupApplyCancelClick(Sender: TObject);
+begin
+  inherited;
+  pan_GroupApply.Visible := False;
+end;
+
+procedure TfmCardAdmin.btn_GroupApplyClick(Sender: TObject);
+var
+  i : integer;
+  bChkState : Boolean;
+  stGroupCode : string;
+  stBuildingCode : string;
+  stBuildingAreaCode : string;
+begin
+  inherited;
+  stGroupCode := '';
+  stBuildingCode := '';
+  stBuildingAreaCode := '';
+  if cmb_TotGroupCode.ItemIndex > 0 then
+  begin
+    stGroupCode := TotGroupCodeList.Strings[cmb_TotGroupCode.ItemIndex];
+  end;
+
+  if cmb_GroupBuildingCode.ItemIndex > 0 then
+  begin
+    stBuildingCode := TotGroupBuildingCodeList.Strings[cmb_GroupBuildingCode.ItemIndex];
+  end;
+  if cmb_GroupBuildingAreaCode.ItemIndex > 0 then
+  begin
+    stBuildingAreaCode := TotGroupBuildingAreaCodeList.Strings[cmb_GroupBuildingAreaCode.ItemIndex];
+  end;
+
+  With sg_List do
+  begin
+    for i := 1 to RowCount - 1 do
+    begin
+      GetCheckBoxState(0,i, bChkState);
+      if bChkState then
+      begin
+        if stGroupCode <> '' then
+        begin
+          dmDBUpdate.UpdateTB_CARD_FieldString(cells[1,i],'CA_GROUPCODE',stGroupCode);
+          if chk_AllGroupGrade.Checked then
+          begin
+            dmDBUpdate.UpdateTB_CARD_FieldString(cells[1,i],'CA_GRADETYPE','1');
+            CardGroupGrade(cells[1,i],stGroupCode);
+          end;
+        end;
+        if stBuildingCode <> '' then
+        begin
+          dmDBUpdate.UpdateTB_CARD_FieldString(cells[1,i],'BC_BUILDINGCODE',stBuildingCode);
+        end;
+        if stBuildingAreaCode <> '' then
+        begin
+          dmDBUpdate.UpdateTB_CARD_FieldString(cells[1,i],'BC_BUILDINGAREACODE',stBuildingAreaCode);
+        end;
+        Application.ProcessMessages;
+      end;
+    end;
+  end;
+  SearchList('');
+  pan_GroupApply.Visible := False;
+end;
+
+procedure TfmCardAdmin.btn_GroupManageClick(Sender: TObject);
+var
+  stMessage : string;
+begin
+  inherited;
+  pan_GroupApply.Visible := True;
+  stMessage := stringReplace('작업할 데이터를 선택하세요','$WORK',btn_Delete.Caption,[rfReplaceAll]);
+  if L_nCheckCount = 0 then
+  begin
+    Application.MessageBox(PChar(stMessage),'Information',MB_OK);
+    Exit;
+  end;
+
+end;
+
+procedure TfmCardAdmin.btn_minimizeClick(Sender: TObject);
+begin
+  inherited;
+  windowState := wsNormal;
+end;
+
+procedure TfmCardAdmin.btn_SaveClick(Sender: TObject);
+var
+  stMessage : string;
+  i,j,k : integer;
+  bResult : Boolean;
+  stCardGroupCode : string;
+  stCardNo : string;
+begin
+  inherited;
+  if not isDigit(ed_addr.Text) then
+  begin
+    ed_addr.Text := '0';
+  end;
+  ed_CardNo.Text := UpperCase(ed_CardNo.Text);
+  stCardNo := ed_CardNo.Text;
+  //if Not isAlphanumeric(ed_CardNo.Text) then
+
+  if Length(stCardNo) <> 8 then
+  begin
+    showmessage('카드 자리수가 맞지 않습니다');
+    Exit;
+  end;
+  if IsHangul(stCardNo) then
+  begin
+    showmessage('카드번호에 영문/숫자 외의 문자는 들어 올수 없습니다.');
+    Exit;
+  end;
+
+  btn_Add.Enabled := False;
+  btn_Save.Enabled := False;
+
+  L_nProgress := 0;
+
+  if L_stWork = 'ADD' then bResult := AddCardNo
+  else if L_stWork = 'UPDATE' then bResult := UpdateCardNo;
+
+  if Not bResult then Exit;
+
+
+  btn_Save.Enabled := True;
+  btn_Add.Enabled := True;
+  Add.Visible := False;
+
+  //여기서 권한 체크 해서 권한 등록하자.
+  if cmb_GradeType.ItemIndex = 0 then
+  begin
+    //개인별카드권한
+    CardDeviceGrade(ed_CardNo.Text);
+  end else
+  begin
+    //그룹별카드권한
+    if cmb_AddGroupCode.ItemIndex > -1 then
+       stCardGroupCode := AddGroupCodeList.Strings[cmb_AddGroupCode.ItemIndex];
+    CardGroupGrade(ed_CardNo.Text,stCardGroupCode);
+  end;
+
+  SearchList(ed_CardNo.Text,sg_List.TopRow);
+  fmMain.FORMCHANGE(con_FormCardAdmin,ed_CardNo.Text);
+end;
+
+procedure TfmCardAdmin.btn_SearchClick(Sender: TObject);
+begin
+  inherited;
+  SearchList('');
+end;
+
+procedure TfmCardAdmin.btn_UpdateClick(Sender: TObject);
+begin
+  inherited;
+  sg_ListDblClick(sg_List);
+end;
+
+function TfmCardAdmin.CardDeviceGrade(aCardNo: string): Boolean;
+var
+  i : integer;
+  bCheckState : Boolean;
+begin
+  with sg_CardGrade do
+  begin
+    for i := RowCount - 1 downto 1 do
+    begin
+      GetCheckBoxState(0,i, bCheckState);
+      if bCheckState then
+      begin
+        dmCardPermit.CardDevicePermit(aCardNo,Cells[2,i],'1');
+      end else
+      begin
+        dmCardPermit.CardDevicePermit(aCardNo,Cells[2,i],'0');
+      end;
+    end;
+  end;
+  result := True;
+end;
+
+procedure TfmCardAdmin.CardGradeSetting(aCardNo: string);
+var
+  stSql : string;
+  TempAdoQuery : TADOQuery;
+  nRow : integer;
+begin
+  GridInit(sg_CardGrade,2,2,true);
+
+  stSql := dmDBSelect.SelectTB_DEVICE_CardGrade(aCardNo);
+  L_nCheckCount := 0;
+
+  Try
+    CoInitialize(nil);
+    TempAdoQuery := TADOQuery.Create(nil);
+    TempAdoQuery.Connection := dmDataBase.ADOConnection;
+    TempAdoQuery.DisableControls;
+
+    with TempAdoQuery do
+    begin
+      Close;
+      sql.Text := stSql;
+      Try
+        Open;
+      Except
+        Exit;
+      End;
+      if recordcount < 1 then Exit;
+      with sg_CardGrade do
+      begin
+        nRow := 1;
+        RowCount := RecordCount + 1;
+        while Not Eof do
+        begin
+          if FindField('CP_PERMIT').AsString = '1' then AddCheckBox(0,nRow,True,False)
+          else AddCheckBox(0,nRow,False,False);
+(*
+  출입문명
+  출입문번호
+*)
+          cells[1,nRow] := FindField('DE_DEVICENAME').AsString;
+          cells[2,nRow] := FindField('DE_SEQ').AsString;
+
+          nRow := nRow + 1;
+          Next;
+        end;
+      end;
+
+    end;
+  Finally
+    TempAdoQuery.EnableControls;
+    TempAdoQuery.Free;
+    CoUninitialize;
+  End;
+end;
+
+function TfmCardAdmin.CardGroupGrade(aCardNo, aGroupCode: string): Boolean;
+begin
+  result := dmCardPermit.CardGropPermitChange(aCardNo,aGroupCode);
+end;
+
+procedure TfmCardAdmin.CardRegistEvent(aCardNo: string);
+begin
+  ed_CardNo.Text := aCardNo;
+end;
+
+procedure TfmCardAdmin.cmb_AddBuildingCodeChange(Sender: TObject);
+var
+  stBuildingCode : string;
+begin
+  inherited;
+  if cmb_AddBuildingCode.ItemIndex > -1 then
+     stBuildingCode := AddBuildingCodeList.Strings[cmb_AddBuildingCode.ItemIndex];
+  dmComboBoxCodeLoad.LoadBuildingAreaCode(stBuildingCode,AddBuildingAreaCodeList,TComboBox(cmb_AddBuildingAreaCode),False,'전체');
+
+end;
+
+procedure TfmCardAdmin.cmb_GradeTypeChange(Sender: TObject);
+begin
+  inherited;
+  if cmb_GradeType.ItemIndex = 0 then
+  begin
+    sg_CardGrade.Visible := True;
+    CardGradeSetting(ed_CardNo.Text);
+    lb_GroupCode.Visible := False;
+    cmb_AddGroupCode.Visible := False;
+  end else
+  begin
+    sg_CardGrade.Visible := False;
+    lb_GroupCode.Visible := True;
+    cmb_AddGroupCode.Visible := True;
+  end;
+end;
+
+procedure TfmCardAdmin.cmb_GroupBuildingCodeChange(Sender: TObject);
+var
+  stBuildingCode : string;
+begin
+  inherited;
+  if cmb_GroupBuildingCode.ItemIndex > -1 then
+     stBuildingCode := TotGroupBuildingCodeList.Strings[cmb_GroupBuildingCode.ItemIndex];
+  dmComboBoxCodeLoad.LoadBuildingAreaCode(stBuildingCode,TotGroupBuildingAreaCodeList,TComboBox(cmb_GroupBuildingAreaCode),True,'적용안함');
+
+end;
+
+procedure TfmCardAdmin.cmb_SearchBuildingAreaChange(Sender: TObject);
+begin
+  inherited;
+  SearchList('');
+end;
+
+procedure TfmCardAdmin.cmb_SearchBuildingChange(Sender: TObject);
+var
+  stBuildingCode : string;
+begin
+  inherited;
+  if cmb_SearchBuilding.ItemIndex > -1 then
+     stBuildingCode := SearchBuildingCodeList.Strings[cmb_SearchBuilding.ItemIndex];
+  dmComboBoxCodeLoad.LoadBuildingAreaCode(stBuildingCode,SearchBuildingAreaCodeList,TComboBox(cmb_SearchBuildingArea),True,'전체');
+  SearchList('');
+end;
+
+procedure TfmCardAdmin.cmb_SearchCardGubunChange(Sender: TObject);
+begin
+  inherited;
+  SearchList('');
+end;
+
+procedure TfmCardAdmin.CommandArrayCommandsTFORMNAMEExecute(Command: TCommand;
+  Params: TStringList);
+begin
+  inherited;
+  Caption := Params.Values['CAPTION'];
+
+end;
+
+procedure TfmCardAdmin.CommandArrayCommandsTGRADEREFRESHExecute(
+  Command: TCommand; Params: TStringList);
+begin
+  inherited;
+(*  btn_Add.Enabled := IsInsertGrade;
+  pm_CodeAdd.Enabled := IsInsertGrade;
+  btn_Delete.Enabled := IsDeleteGrade;
+  pm_DeleteCode.Enabled := IsDeleteGrade;
+  btn_Update.Enabled
+*)
+end;
+
+procedure TfmCardAdmin.CommandArrayCommandsTMENUIDExecute(Command: TCommand;
+  Params: TStringList);
+begin
+  inherited;
+  L_stMenuID := Params.Values['ID'];
+end;
+
+procedure TfmCardAdmin.ed_AddCardNameKeyPress(Sender: TObject;
+  var Key: Char);
+begin
+  inherited;
+  if Key = Char(VK_RETURN) then
+  begin
+    //btn_SaveClick(btn_Save);
+  end;
+
+end;
+
+procedure TfmCardAdmin.ed_CardNoKeyDown(Sender: TObject; var Key: Word;
+  Shift: TShiftState);
+begin
+  inherited;
+  if key=vk_return then
+  begin
+    //엔터키를 누르면 실행
+    selectnext(sender as twincontrol,true,true);
+    //현재 컴포넌트의 TabOrder 다음값으로 이동합니다.
+  end;
+end;
+
+procedure TfmCardAdmin.ed_SearchNameChange(Sender: TObject);
+begin
+  inherited;
+  SearchList('');
+end;
+
+procedure TfmCardAdmin.FormChangeEvent(aFormName: integer);
+var
+  stOldData : string;
+  nIndex : integer;
+begin
+  case aFormName of
+    con_FormBuildingAreaCode : begin
+      if cmb_SearchBuildingArea.ItemIndex > -1 then
+         stOldData := SearchBuildingAreaCodeList.Strings[cmb_SearchBuildingArea.ItemIndex];
+      cmb_SearchBuildingChange(cmb_SearchBuilding);
+      nIndex := SearchBuildingAreaCodeList.IndexOf(stOldData);
+      cmb_SearchBuildingArea.ItemIndex := nIndex;
+
+      if cmb_AddBuildingAreaCode.ItemIndex > -1 then
+         stOldData := AddBuildingAreaCodeList.Strings[cmb_AddBuildingAreaCode.ItemIndex];
+      cmb_AddBuildingCodeChange(cmb_AddBuildingCode);
+      nIndex := AddBuildingAreaCodeList.IndexOf(stOldData);
+      cmb_AddBuildingAreaCode.ItemIndex := nIndex;
+    end;
+    con_FormBuildingCode : begin
+      if cmb_SearchBuilding.ItemIndex > -1 then
+         stOldData := SearchBuildingCodeList.Strings[cmb_SearchBuilding.ItemIndex];
+      dmComboBoxCodeLoad.LoadBuildingCode(SearchBuildingCodeList,TComboBox(cmb_SearchBuilding),True,'전체');
+      nIndex := SearchBuildingCodeList.IndexOf(stOldData);
+      cmb_SearchBuilding.ItemIndex := nIndex;
+      stOldData := '';
+      if cmb_AddBuildingCode.ItemIndex > -1 then
+         stOldData := AddBuildingCodeList.Strings[cmb_AddBuildingCode.ItemIndex];
+      dmComboBoxCodeLoad.LoadBuildingCode(AddBuildingCodeList,TComboBox(cmb_AddBuildingCode),False,'전체');
+      nIndex := AddBuildingCodeList.IndexOf(stOldData);
+      cmb_AddBuildingCode.ItemIndex := nIndex;
+    end;
+    con_FormCardGubunCode : begin
+      if cmb_SearchCardGubun.ItemIndex > -1 then
+         stOldData := SearchCardGubunCodeList.Strings[cmb_SearchCardGubun.ItemIndex];
+      dmComboBoxCodeLoad.LoadCardGubunCode(SearchCardGubunCodeList,TComboBox(cmb_SearchCardGubun),True,'전체');
+      nIndex := SearchCardGubunCodeList.IndexOf(stOldData);
+      cmb_SearchCardGubun.ItemIndex := nIndex;
+
+      if cmb_AddCardGubun.ItemIndex > -1 then
+         stOldData := AddCardGubunCodeList.Strings[cmb_AddCardGubun.ItemIndex];
+      dmComboBoxCodeLoad.LoadCardGubunCode(AddCardGubunCodeList,TComboBox(cmb_AddCardGubun),False,'전체');
+      nIndex := AddCardGubunCodeList.IndexOf(stOldData);
+      cmb_AddCardGubun.ItemIndex := nIndex;
+    end;
+  end;
+end;
+
+procedure TfmCardAdmin.FormClose(Sender: TObject; var Action: TCloseAction);
+begin
+  inherited;
+  fmMain.FORMENABLE(con_FormCardAdmin,'FALSE');
+
+  AddCardGubunCodeList.Free;
+  AddBuildingCodeList.Free;
+  AddBuildingAreaCodeList.Free;
+  AddGroupCodeList.Free;
+
+  SearchCardGubunCodeList.Free;
+  SearchBuildingCodeList.Free;
+  SearchBuildingAreaCodeList.Free;
+  TotGroupCodeList.Free;
+  TotGroupBuildingCodeList.Free;
+  TotGroupBuildingAreaCodeList.Free;
+
+  Action := caFree;
+end;
+
+procedure TfmCardAdmin.FormCreate(Sender: TObject);
+begin
+  inherited;
+  AddCardGubunCodeList := TStringList.Create;
+  AddBuildingCodeList := TStringList.Create;
+  AddBuildingAreaCodeList:= TStringList.Create;
+  AddGroupCodeList := TStringList.Create;
+
+  SearchCardGubunCodeList := TStringList.Create;
+  SearchBuildingCodeList := TStringList.Create;
+  SearchBuildingAreaCodeList:= TStringList.Create;
+  TotGroupCodeList := TStringList.Create;
+  TotGroupBuildingCodeList := TStringList.Create;
+  TotGroupBuildingAreaCodeList := TStringList.Create;
+
+
+  dmComboBoxCodeLoad.LoadBuildingCode(SearchBuildingCodeList,TComboBox(cmb_SearchBuilding),True,'전체');
+  dmComboBoxCodeLoad.LoadBuildingCode(AddBuildingCodeList,TComboBox(cmb_AddBuildingCode),False,'전체');
+  cmb_AddBuildingCodeChange(cmb_AddBuildingCode);
+  dmComboBoxCodeLoad.LoadBuildingCode(TotGroupBuildingCodeList,TComboBox(cmb_GroupBuildingCode),True,'적용안함');
+  cmb_GroupBuildingCodeChange(cmb_GroupBuildingCode);
+
+  dmComboBoxCodeLoad.LoadBuildingAreaCode('',SearchBuildingAreaCodeList,TComboBox(cmb_SearchBuildingArea),True,'전체');
+  dmComboBoxCodeLoad.LoadCardGubunCode(SearchCardGubunCodeList,TComboBox(cmb_SearchCardGubun),True,'전체');
+  dmComboBoxCodeLoad.LoadCardGubunCode(AddCardGubunCodeList,TComboBox(cmb_AddCardGubun),False,'전체');
+
+  dmComboBoxCodeLoad.LoadCardGroupCode(AddGroupCodeList,TComboBox(cmb_AddGroupCode),False,'전체');
+  dmComboBoxCodeLoad.LoadCardGroupCode(TotGroupCodeList,TComboBox(cmb_TotGroupCode),True,'적용안함');
+
+  L_nPageListMaxCount := 17;
+end;
+
+function TfmCardAdmin.FormNameSetting: Boolean;
+begin
+
+  AdvOfficePage1.Caption := '관리';
+  L_stNodeAddCaption := '추가';
+  L_stNodeUpdateCaption := '수정';
+
+end;
+
+procedure TfmCardAdmin.FormResize(Sender: TObject);
+begin
+  inherited;
+  btn_Close.Left := AdvOfficePager1.Width - btn_Close.Width - 10;
+  btn_minimize.Left := btn_Close.Left - btn_minimize.Width - 2;
+
+  if Windowstate = wsMaximized then
+  begin
+    btn_minimize.Visible := True;
+    btn_Close.Visible := True;
+  end else
+  begin
+    btn_minimize.Visible := False;
+    btn_Close.Visible := False;
+  end;
+
+  sg_List.Left := 10;
+  sg_List.Width := BodyPanel.Width - (sg_List.Left * 2);
+  sg_List.Height := BodyPanel.Height - (sg_List.Top + 10);
+
+  Add.Left := (BodyPanel.Width div 2) - (Add.Width div 2);
+  Add.Top := (BodyPanel.Height div 2) - (Add.Height div 2);
+
+  pan_GroupApply.Left := (BodyPanel.Width div 2) - (pan_GroupApply.Width div 2);
+  pan_GroupApply.Top := (BodyPanel.Height div 2) - (pan_GroupApply.Height div 2);
+
+end;
+
+procedure TfmCardAdmin.FormShow(Sender: TObject);
+begin
+  inherited;
+  WindowState := wsMaximized;
+
+  FormNameSetting;
+//  self.FindSubForm('Main').FindCommand('FORMENABLE').Params.Values['NAME'] := inttostr(conFORMNODEADMIN);
+//  self.FindSubForm('Main').FindCommand('FORMENABLE').Params.Values['VALUE'] := 'TRUE';
+//  self.FindSubForm('Main').FindCommand('FORMENABLE').Execute;
+  SearchList('');
+  fmMain.FORMENABLE(con_FormCardAdmin,'TRUE');
+end;
+
+procedure TfmCardAdmin.pm_CodeAddClick(Sender: TObject);
+begin
+  inherited;
+  lb_WorkType.Caption := L_stNodeAddCaption;
+  Add.Visible := True;
+  L_stWork := 'ADD';
+  ed_CardNo.Text := '';
+  ed_AddCardName.Text := '';
+  if cmb_AddCardGubun.Items.Count > 0 then cmb_AddCardGubun.ItemIndex := 0;
+  if cmb_AddBuildingCode.Items.Count > 0 then cmb_AddBuildingCode.ItemIndex := 0;
+  if cmb_AddBuildingAreaCode.Items.Count > 0 then cmb_AddBuildingAreaCode.ItemIndex := 0;
+  ed_Addr.Text := '';
+  dt_Indate.Date := now;
+  dt_OutDate.Date :=  EncodeDateTime(9999,
+                                             12,
+                                             31,
+                                             0,0,0,0);
+  cmb_GradeType.ItemIndex := 1;
+  cmb_GradeTypeChange(cmb_GradeType);
+  ed_CardNo.Enabled := True;
+  ed_CardNo.SetFocus;
+end;
+
+procedure TfmCardAdmin.pm_UpdateCodeClick(Sender: TObject);
+begin
+  inherited;
+  sg_ListDblClick(sg_List);
+end;
+
+function TfmCardAdmin.SearchList(aCardNum:string;aTopRow:integer = 0): Boolean;
+var
+  stSql : string;
+  TempAdoQuery : TADOQuery;
+  nRow : integer;
+  stBuildingCode,stBuildingAreaCode,stCardGubun : string;
+begin
+  GridInit(sg_List,10,2,true);
+
+  if cmb_SearchCardGubun.ItemIndex > -1 then
+     stCardGubun := SearchCardGubunCodeList.Strings[cmb_SearchCardGubun.ItemIndex];
+  if cmb_SearchBuilding.ItemIndex > -1 then
+     stBuildingCode := SearchBuildingCodeList.Strings[cmb_SearchBuilding.ItemIndex];
+  if cmb_SearchBuildingArea.ItemIndex > -1 then
+     stBuildingAreaCode := SearchBuildingAreaCodeList.Strings[cmb_SearchBuildingArea.ItemIndex];
+
+  stSql := dmDBSelect.SelectTB_CARD_Name(stCardGubun,stBuildingCode,stBuildingAreaCode,ed_UserName.Text,ed_searchCardNo.Text);
+  L_nCheckCount := 0;
+
+  Try
+    CoInitialize(nil);
+    TempAdoQuery := TADOQuery.Create(nil);
+    TempAdoQuery.Connection := dmDataBase.ADOConnection;
+    TempAdoQuery.DisableControls;
+
+    with TempAdoQuery do
+    begin
+      Close;
+      sql.Text := stSql;
+      Try
+        Open;
+      Except
+        Exit;
+      End;
+      if recordcount < 1 then Exit;
+      with sg_List do
+      begin
+        nRow := 1;
+        RowCount := RecordCount + 1;
+        while Not Eof do
+        begin
+          AddCheckBox(0,nRow,False,False);
+(*
+카드번호
+동
+출구
+사용자구분
+호
+이름
+등록일
+유효기간
+권한그룹
+동코드
+출구코드
+사용자구분코드
+권한타입
+그룹코드
+*)
+          cells[1,nRow] := FindField('CA_CARDNO').AsString;
+          cells[2,nRow] := FindField('BC_BUILDINGNAME').AsString;
+          cells[3,nRow] := FindField('BC_BUILDINGAREANAME').AsString;
+          cells[4,nRow] := FindField('CA_GUBUNNAME').AsString;
+          cells[5,nRow] := FindField('CA_ADDR').AsString;
+          cells[6,nRow] := FindField('CA_NAME').AsString;
+          cells[7,nRow] := FindField('CA_STARTYMDHMS').AsString;
+          cells[8,nRow] := FindField('CA_ENDYMDHMS').AsString;
+          if FindField('CA_GRADETYPE').AsString = '1' then cells[9,nRow] := FindField('CA_GROUPCODENAME').AsString  //그룹별 권한 인경우만
+          else cells[9,nRow] := '';
+          cells[10,nRow] := FindField('BC_BUILDINGCODE').AsString;
+          cells[11,nRow] := FindField('BC_BUILDINGAREACODE').AsString;
+          cells[12,nRow] := FindField('CA_GUBUN').AsString;
+          cells[13,nRow] := FindField('CA_GRADETYPE').AsString;
+          cells[14,nRow] := FindField('CA_GROUPCODE').AsString;
+          if cells[1,nRow] = aCardNum then
+          begin
+            SelectRows(nRow,1);
+          end;
+          if FindField('CA_GRADETYPE').AsString = '0' then RowColor[nRow] := clYellow //$00EACAB6     //개인별
+          else if FindField('CA_GRADETYPE').AsString = '1' then RowColor[nRow] := clWhite //$00EACAB6  //그룹별
+          else RowColor[nRow] := clBlue;
+
+          nRow := nRow + 1;
+          Next;
+        end;
+        if aTopRow = 0 then
+        begin
+          if Row > (L_nPageListMaxCount - 1) then TopRow := Row - L_nPageListMaxCount;
+        end else
+        begin
+          TopRow := aTopRow;
+        end;
+      end;
+
+    end;
+  Finally
+    TempAdoQuery.EnableControls;
+    TempAdoQuery.Free;
+    CoUninitialize;
+  End;
+end;
+
+
+procedure TfmCardAdmin.sg_CardGradeCheckBoxClick(Sender: TObject; ACol,
+  ARow: Integer; State: Boolean);
+begin
+  inherited;
+  if ARow = 0 then //전체선택 또는 해제
+  begin
+    AdvStrinGridSetAllCheck(Sender,State);
+  end;
+end;
+
+procedure TfmCardAdmin.sg_ListCheckBoxClick(Sender: TObject; ACol,
+  ARow: Integer; State: Boolean);
+begin
+  inherited;
+  if ARow = 0 then //전체선택 또는 해제
+  begin
+    if State then L_nCheckCount := (Sender as TAdvStringGrid).RowCount - 1
+    else L_nCheckCount := 0;
+    AdvStrinGridSetAllCheck(Sender,State);
+  end else
+  begin
+    if State then L_nCheckCount := L_nCheckCount + 1
+    else L_nCheckCount := L_nCheckCount - 1 ;
+  end;
+  if L_nCheckCount = 0 then  btn_Delete.Enabled := False
+  else btn_Delete.Enabled := True;
+end;
+
+procedure TfmCardAdmin.sg_ListDblClick(Sender: TObject);
+var
+  nIndex : integer;
+begin
+  inherited;
+  L_stWork := 'UPDATE';
+  with sg_List do
+  begin
+    if cells[1,Row] = '' then Exit;
+    ed_CardNo.Text := cells[1,Row];
+    ed_AddCardName.Text := cells[6,Row];
+    cmb_AddCardGubun.ItemIndex := AddCardGubunCodeList.IndexOf(cells[12,Row]);
+    cmb_AddBuildingCode.ItemIndex := AddBuildingCodeList.IndexOf(cells[10,Row]);
+    cmb_AddBuildingAreaCode.ItemIndex := AddBuildingAreaCodeList.IndexOf(cells[11,Row]);
+    ed_Addr.Text := cells[5,Row];
+    L_stOldStartDay := cells[7,Row];
+    L_stOldEndDay := cells[8,Row];
+    if IsDate(cells[7,Row]) then
+    begin
+      dt_Indate.Date := EncodeDateTime(strtoint(copy(cells[7,Row],1,4)),
+                                             strtoint(copy(cells[7,Row],5,2)),
+                                             strtoint(copy(cells[7,Row],7,2)),
+                                             0,0,0,0);
+    end
+    else dt_Indate.Date := Now;
+    if IsDate(cells[8,Row]) then
+    begin
+      dt_OutDate.Date := EncodeDateTime(strtoint(copy(cells[8,Row],1,4)),
+                                             strtoint(copy(cells[8,Row],5,2)),
+                                             strtoint(copy(cells[8,Row],7,2)),
+                                             0,0,0,0);
+    end
+    else dt_OutDate.Date :=  EncodeDateTime(9999,
+                                             12,
+                                             31,
+                                             0,0,0,0);
+    if isDigit(cells[13,Row]) then
+       cmb_GradeType.ItemIndex := strtoint(cells[13,Row]);
+    cmb_GradeTypeChange(cmb_GradeType);
+    cmb_AddGroupCode.ItemIndex := AddGroupCodeList.IndexOf(cells[14,Row]);
+
+  end;
+  ed_CardNo.Enabled := False;
+  lb_WorkType.Caption := L_stNodeUpdateCaption;
+  Add.Visible := True;
+end;
+
+function TfmCardAdmin.UpdateCardNo: Boolean;
+var
+  stBuildingCode : string;
+  stBuildingAreaCode : string;
+  stCardGubunCode : string;
+  stCardGroupCode : string;
+  stStartDate : string;
+  stEndDate : string;
+  stMessage : string;
+begin
+  if cmb_AddCardGubun.ItemIndex > -1 then
+     stCardGubunCode := AddCardGubunCodeList.Strings[cmb_AddCardGubun.ItemIndex];
+  if cmb_AddBuildingCode.ItemIndex > -1 then
+     stBuildingCode := AddBuildingCodeList.Strings[cmb_AddBuildingCode.ItemIndex];
+  if cmb_AddBuildingAreaCode.ItemIndex > -1 then
+     stBuildingAreaCode := AddBuildingAreaCodeList.Strings[cmb_AddBuildingAreaCode.ItemIndex];
+  if cmb_AddGroupCode.ItemIndex > -1 then
+     stCardGroupCode := AddGroupCodeList.Strings[cmb_AddGroupCode.ItemIndex];
+
+  if cmb_GradeType.ItemIndex < 0 then cmb_GradeType.ItemIndex := 1;
+
+  if Not isDigit(stCardGubunCode) then stCardGubunCode := '0';
+  if Not isDigit(stBuildingCode) then stBuildingCode := '0';
+  if Not isDigit(stBuildingAreaCode) then stBuildingAreaCode := '0';
+  if Not isDigit(stCardGroupCode) then stCardGroupCode := '0';
+
+  stStartDate := FormatDateTime('yyyymmdd',dt_Indate.Date);
+  stEndDate := FormatDateTime('yyyymmdd',dt_OutDate.Date);
+
+  if stStartDate >= stEndDate  then
+  begin
+    showmessage('유효기간이 등록일자보다 작을 수 없습니다.');
+    Exit;
+  end;
+
+
+  if Not dmDBUpdate.UpdateTB_CARD_Value(ed_CardNo.Text,'1',ed_AddCardName.text,stCardGubunCode,stBuildingCode,stBuildingAreaCode,'0',ed_Addr.Text,inttostr(cmb_GradeType.ItemIndex),stCardGroupCode,stStartDate,stEndDate,'N','N') then
+  begin
+    stMessage := stringReplace('저장 실패','$WORK',btn_Save.Caption,[rfReplaceAll]);
+    Application.MessageBox(PChar(stMessage),'Error',MB_OK);
+    Exit;
+  end;
+
+  if L_stOldStartDay <> stStartDate then dmDBUpdate.UpdateTB_CARD_FieldString(ed_CardNo.Text,'CA_STARTSEND','N');
+  if L_stOldEndDay <> stEndDate then dmDBUpdate.UpdateTB_CARD_FieldString(ed_CardNo.Text,'CA_ENDSEND','N');
+
+
+  result := True;
+
+end;
+
+initialization
+  RegisterClass(TfmCardAdmin);
+Finalization
+  UnRegisterClass(TfmCardAdmin);
+
+end.

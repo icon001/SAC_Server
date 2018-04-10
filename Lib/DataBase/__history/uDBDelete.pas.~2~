@@ -1,0 +1,42 @@
+unit uDBDelete;
+
+interface
+
+uses
+  System.SysUtils, System.Classes;
+
+type
+  TdmDBDelete = class(TDataModule)
+  private
+    { Private declarations }
+  public
+    { Public declarations }
+    Function DeleteTB_BUILDINGCODE_Value(aBuildingCode:string):Boolean;
+  end;
+
+var
+  dmDBDelete: TdmDBDelete;
+
+implementation
+
+uses
+  uDataBase;
+
+{%CLASSGROUP 'Vcl.Controls.TControl'}
+
+{$R *.dfm}
+
+{ TdmDBDelete }
+
+function TdmDBDelete.DeleteTB_BUILDINGCODE_Value(
+  aBuildingCode: string): Boolean;
+var
+  stSql : string;
+begin
+  stSql := ' Delete From TB_BUILDINGCODE ';
+  stSql := stSql + ' Where BC_BUILDINGCODE = ' + aBuildingCode + ' ';
+
+  result := dmDataBase.ProcessEventExecSQL(stSql);
+end;
+
+end.

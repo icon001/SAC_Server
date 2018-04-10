@@ -1,0 +1,25 @@
+unit uEncrypt;
+
+interface
+
+uses
+  System.SysUtils, System.Classes;
+
+type
+  TdmEncrypt = class(TDataModule)
+  private
+    { Private declarations }
+  public
+    { Public declarations }
+  end;
+
+var
+  dmEncrypt: TdmEncrypt;
+
+implementation
+
+{%CLASSGROUP 'Vcl.Controls.TControl'}
+
+{$R *.dfm}
+
+end.

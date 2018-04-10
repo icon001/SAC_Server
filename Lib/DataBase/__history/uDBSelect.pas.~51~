@@ -1,0 +1,778 @@
+unit uDBSelect;
+
+interface
+
+uses
+  System.SysUtils, System.Classes;
+
+type
+  TdmDBSelect = class(TDataModule)
+  private
+    { Private declarations }
+  public
+    { Public declarations }
+    Function SelectTB_ACCESSEVENT_AccessReport(aStartDate, aStartTime,aEndDate, aEndTime, aDoorBuildingCode, aDoorBuildingAreaCode, aDoorSeq, aCardGubunCode, aCardBuildingCode,
+            aCardBuildingAreaCode, aCardNo, aCardName:string):string;
+    Function SelectTB_ADMIN_UserName(aName:string):string;
+    Function SelectTB_BUILDINGAREACODE_Name(aBuildingCode,aName:string):string;
+    Function SelectTB_BUILDINGCODE_Name(aName:string):string;
+    Function SelectTB_BUILDINGFLOORCODE_Name(aName:string):string;
+    Function SelectTB_CARD_Backup:string;
+    Function SelectTB_CARD_Name(aCardGubun,aBuildingCode,aBuildingAreaCode,aName:string):string;
+    Function SelectTB_CARDGROUPCODE_Name(aName:string):string;
+    Function SelectTB_CARDGUBUNCODE_Name(aName:string):string;
+    Function SelectTB_CARDPERMITGROUP_GradeDoorList(aGroupCode,aBuildingCode,aBuildingAreaCode,aName:string):string;
+    Function SelectTB_CARDPERMITGROUP_NotGradeDoorList(aGroupCode,aBuildingCode,aBuildingAreaCode,aName:string):string;
+    Function SelectTB_DEVICE_CardGrade(aCardNo:string):string;
+    Function SelectTB_DEVICECARDNO_CardName(aBuildingCode,aBuildingAreaCode,aCardGubun,aCardName:string):string;
+    Function SelectTB_DEVICECARDNO_CardNoPermit(aDeviceSeq,aCardNo:string):string;
+    Function SelectTB_DEVICECARDNO_DoorCode(aBuildingCode,aBuildingAreaCode,aDoorCode:string):string;
+    Function SelectTB_DEVICECARDNO_SendType(aSendType:string):string;
+    Function SelectTB_DEVICE_Name(aBuildingCode,aAreaCode,aFloorCode,aName:string):string;
+  end;
+
+var
+  dmDBSelect: TdmDBSelect;
+
+implementation
+
+uses
+  uCommonFunction,
+  uCommonVariable;
+
+{%CLASSGROUP 'Vcl.Controls.TControl'}
+
+{$R *.dfm}
+
+{ TdmDBSelect }
+
+function TdmDBSelect.SelectTB_ACCESSEVENT_AccessReport(aStartDate, aStartTime,
+  aEndDate, aEndTime, aDoorBuildingCode, aDoorBuildingAreaCode, aDoorSeq,
+  aCardGubunCode, aCardBuildingCode, aCardBuildingAreaCode, aCardNo,
+  aCardName: string): string;
+var
+  stSql : string;
+begin
+  if G_nDBTYPE = MDB then
+  begin
+    stSql := ' Select a.*,d.BC_BUILDINGNAME as DoorBuildingName,e.BC_BUILDINGAREANAME as DoorBuildingAreaName, ';
+    stSql := stSql + 'b.DE_DEVICENAME,f.CA_GUBUNNAME,g.BC_BUILDINGNAME as CardBuildingName,h.BC_BUILDINGAREANAME as CardBuildingAreaName,';
+    stSql := stSql + 'c.CA_NAME,i.DE_LOCKMODENAME,j.AE_EVENTCODENAME ';
+    stSql := stSql + ' FROM ';
+    stSql := stSql + ' ( ';
+    stSql := stSql + ' ( ';
+    stSql := stSql + ' ( ';
+    stSql := stSql + ' ( ';
+    stSql := stSql + ' ( ';
+    stSql := stSql + ' ( ';
+    stSql := stSql + ' ( ';
+    stSql := stSql + ' ( ';
+    stSql := stSql + ' (select * from TB_ACCESSEVENT IN ''';
+    stSql := stSql + G_stExeFolder + '\..\DB\SACEVENT.mdb'') a ';
+    if (aDoorBuildingCode <> '') or (aDoorBuildingAreaCode <> '') or (aDoorSeq <> '') then  //출입문 조건이 있으면 inner join
+    begin
+      stSql := stSql + ' Inner JOIN (select * from TB_DEVICE ';
+      if isDigit(aDoorSeq) then
+      begin
+        stSql := stSql + ' Where DE_SEQ = ' + aDoorSeq + ' ';
+      end else
+      begin
+        if isDigit(aDoorBuildingAreaCode) then
+        begin
+          stSql := stSql + ' Where BC_BUILDINGCODE = ' + aDoorBuildingCode + ' ';
+          stSql := stSql + ' AND BC_BUILDINGAREACODE = ' + aDoorBuildingAreaCode + ' ';
+        end else
+        begin
+          stSql := stSql + ' Where BC_BUILDINGCODE = ' + aDoorBuildingCode + ' ';
+        end;
+      end;
+      stSql := stSql + ' ) b ';
+    end else
+    begin
+      stSql := stSql + ' left JOIN TB_DEVICE b ';
+    end;
+    stSql := stSql + ' ON (a.DE_SEQ = b.DE_SEQ) ';
+    stSql := stSql + ' ) ';
+    if (aCardGubunCode <> '') or (aCardBuildingCode <> '') or (aCardBuildingAreaCode <> '') or (aCardNo <> '') or (aCardName <> '') then
+    begin
+      stSql := stSql + ' Inner JOIN (select * from TB_CARD ';
+      if aCardNo <> '' then
+      begin
+        stSql := stSql + ' Where CA_CARDNO = ''' + aCardNo + ''' ';
+      end else
+      begin
+        if isDigit(aCardBuildingAreaCode) then
+        begin
+          stSql := stSql + ' Where BC_BUILDINGCODE = ' + aCardBuildingCode + ' ';
+          stSql := stSql + ' AND BC_BUILDINGAREACODE = ' + aCardBuildingAreaCode + ' ';
+          if aCardName <> '' then stSql := stSql + ' AND CA_NAME Like ''%' + aCardName + '%'' ';
+          if isDigit(aCardGubunCode) then stSql := stSql + ' AND CA_GUBUN = ' + aCardGubunCode + ' ';
+        end else if isDigit(aCardBuildingCode) then
+        begin
+          stSql := stSql + ' Where BC_BUILDINGCODE = ' + aCardBuildingCode + ' ';
+          if aCardName <> '' then stSql := stSql + ' AND CA_NAME Like ''%' + aCardName + '%'' ';
+          if isDigit(aCardGubunCode) then stSql := stSql + ' AND CA_GUBUN = ' + aCardGubunCode + ' ';
+        end else
+        begin
+          if isDigit(aCardGubunCode) then
+          begin
+            stSql := stSql + ' Where CA_GUBUN = ' + aCardGubunCode + ' ';
+            if aCardName <> '' then stSql := stSql + ' AND CA_NAME Like ''%' + aCardName + '%'' ';
+          end else
+          begin
+            if aCardName <> '' then stSql := stSql + ' Where CA_NAME Like ''%' + aCardName + '%'' ';
+          end;
+        end;
+      end;
+      stSql := stSql + ' ) c ';
+    end else
+    begin
+      stSql := stSql + ' left JOIN TB_CARD c ';
+    end;
+    stSql := stSql + ' ON (a.CA_CARDNO = c.CA_CARDNO) ';
+    stSql := stSql + ' ) ';
+    stSql := stSql + ' left JOIN TB_BUILDINGCODE d ';
+    stSql := stSql + ' ON(b.BC_BUILDINGCODE = d.BC_BUILDINGCODE) ';
+    stSql := stSql + ' ) ';
+    stSql := stSql + ' left JOIN TB_BUILDINGAREACODE e ';
+    stSql := stSql + ' ON(b.BC_BUILDINGCODE = e.BC_BUILDINGCODE) ';
+    stSql := stSql + ' AND(b.BC_BUILDINGAREACODE = e.BC_BUILDINGAREACODE) ';
+    stSql := stSql + ' ) ';
+    stSql := stSql + ' left JOIN TB_CARDGUBUNCODE f ';
+    stSql := stSql + ' ON(c.CA_GUBUN = f.CA_GUBUN) ';
+    stSql := stSql + ' ) ';
+    stSql := stSql + ' left JOIN TB_BUILDINGCODE g ';
+    stSql := stSql + ' ON(c.BC_BUILDINGCODE = g.BC_BUILDINGCODE) ';
+    stSql := stSql + ' ) ';
+    stSql := stSql + ' left JOIN TB_BUILDINGAREACODE h ';
+    stSql := stSql + ' ON(c.BC_BUILDINGCODE = h.BC_BUILDINGCODE) ';
+    stSql := stSql + ' AND(c.BC_BUILDINGAREACODE = h.BC_BUILDINGAREACODE) ';
+    stSql := stSql + ' ) ';
+    stSql := stSql + ' left JOIN TB_DOORLOCKPORT i ';
+    stSql := stSql + ' ON(a.DE_LOCKMODE = i.DE_LOCKMODE) ';
+    stSql := stSql + ' ) ';
+    stSql := stSql + ' left JOIN TB_ACCESSEVENTCODE j ';
+    stSql := stSql + ' ON(a.AE_EVENTCODE = j.AE_EVENTCODE) ';
+    stSql := stSql + ' Where a.GROUP_CODE = ''' + G_stGroupCode + ''' ';
+    stSql := stSql + ' AND a.AE_DATE + a.AE_TIME BETWEEN ''' + aStartDate + aStartTime + ''' AND ''' + aEndDate + aEndTime + ''' ';
+  end else
+  begin
+    stSql := ' Select a.*,d.BC_BUILDINGNAME as DoorBuildingName,e.BC_BUILDINGAREANAME as DoorBuildingAreaName, ';
+    stSql := stSql + 'b.DE_DEVICENAME,f.CA_GUBUNNAME,g.BC_BUILDINGNAME as CardBuildingName,h.BC_BUILDINGAREANAME as CardBuildingAreaName,';
+    stSql := stSql + 'c.CA_NAME,i.DE_LOCKMODENAME,j.AE_EVENTCODENAME ';
+    stSql := stSql + ' FROM ';
+    stSql := stSql + ' (select * from TB_ACCESSEVENT ) a ';
+    if (aDoorBuildingCode <> '') or (aDoorBuildingAreaCode <> '') or (aDoorSeq <> '') then  //출입문 조건이 있으면 inner join
+    begin
+      stSql := stSql + ' Inner JOIN (select * from TB_DEVICE ';
+      if isDigit(aDoorSeq) then
+      begin
+        stSql := stSql + ' Where DE_SEQ = ' + aDoorSeq + ' ';
+      end else
+      begin
+        if isDigit(aDoorBuildingAreaCode) then
+        begin
+          stSql := stSql + ' Where BC_BUILDINGCODE = ' + aDoorBuildingCode + ' ';
+          stSql := stSql + ' AND BC_BUILDINGAREACODE = ' + aDoorBuildingAreaCode + ' ';
+        end else
+        begin
+          stSql := stSql + ' Where BC_BUILDINGCODE = ' + aDoorBuildingCode + ' ';
+        end;
+      end;
+      stSql := stSql + ' ) b ';
+    end else
+    begin
+      stSql := stSql + ' left JOIN TB_DEVICE b ';
+    end;
+    stSql := stSql + ' ON (a.DE_SEQ = b.DE_SEQ) ';
+    if (aCardGubunCode <> '') or (aCardBuildingCode <> '') or (aCardBuildingAreaCode <> '') or (aCardNo <> '') or (aCardName <> '') then
+    begin
+      stSql := stSql + ' Inner JOIN (select * from TB_CARD ';
+      if aCardNo <> '' then
+      begin
+        stSql := stSql + ' Where CA_CARDNO = ''' + aCardNo + ''' ';
+      end else
+      begin
+        if isDigit(aCardBuildingAreaCode) then
+        begin
+          stSql := stSql + ' Where BC_BUILDINGCODE = ' + aCardBuildingCode + ' ';
+          stSql := stSql + ' AND BC_BUILDINGAREACODE = ' + aCardBuildingAreaCode + ' ';
+          if aCardName <> '' then stSql := stSql + ' AND CA_NAME Like ''%' + aCardName + '%'' ';
+          if isDigit(aCardGubunCode) then stSql := stSql + ' AND CA_GUBUN = ' + aCardGubunCode + ' ';
+        end else if isDigit(aCardBuildingCode) then
+        begin
+          stSql := stSql + ' Where BC_BUILDINGCODE = ' + aCardBuildingCode + ' ';
+          if aCardName <> '' then stSql := stSql + ' AND CA_NAME Like ''%' + aCardName + '%'' ';
+          if isDigit(aCardGubunCode) then stSql := stSql + ' AND CA_GUBUN = ' + aCardGubunCode + ' ';
+        end else
+        begin
+          if isDigit(aCardGubunCode) then
+          begin
+            stSql := stSql + ' Where CA_GUBUN = ' + aCardGubunCode + ' ';
+            if aCardName <> '' then stSql := stSql + ' AND CA_NAME Like ''%' + aCardName + '%'' ';
+          end else
+          begin
+            if aCardName <> '' then stSql := stSql + ' Where CA_NAME Like ''%' + aCardName + '%'' ';
+          end;
+        end;
+      end;
+      stSql := stSql + ' ) c ';
+    end else
+    begin
+      stSql := stSql + ' left JOIN TB_CARD c ';
+    end;
+    stSql := stSql + ' ON (a.CA_CARDNO = c.CA_CARDNO) ';
+    stSql := stSql + ' left JOIN TB_BUILDINGCODE d ';
+    stSql := stSql + ' ON(b.BC_BUILDINGCODE = d.BC_BUILDINGCODE) ';
+    stSql := stSql + ' left JOIN TB_BUILDINGAREACODE e ';
+    stSql := stSql + ' ON(b.BC_BUILDINGCODE = e.BC_BUILDINGCODE) ';
+    stSql := stSql + ' AND(b.BC_BUILDINGAREACODE = e.BC_BUILDINGAREACODE) ';
+    stSql := stSql + ' left JOIN TB_CARDGUBUNCODE f ';
+    stSql := stSql + ' ON(c.CA_GUBUN = f.CA_GUBUN) ';
+    stSql := stSql + ' left JOIN TB_BUILDINGCODE g ';
+    stSql := stSql + ' ON(c.BC_BUILDINGCODE = g.BC_BUILDINGCODE) ';
+    stSql := stSql + ' left JOIN TB_BUILDINGAREACODE h ';
+    stSql := stSql + ' ON(c.BC_BUILDINGCODE = h.BC_BUILDINGCODE) ';
+    stSql := stSql + ' AND(c.BC_BUILDINGAREACODE = h.BC_BUILDINGAREACODE) ';
+    stSql := stSql + ' left JOIN TB_DOORLOCKPORT i ';
+    stSql := stSql + ' ON(a.DE_LOCKMODE = i.DE_LOCKMODE) ';
+    stSql := stSql + ' left JOIN TB_ACCESSEVENTCODE j ';
+    stSql := stSql + ' ON(a.AE_EVENTCODE = j.AE_EVENTCODE) ';
+    stSql := stSql + ' Where a.GROUP_CODE = ''' + G_stGroupCode + ''' ';
+    stSql := stSql + ' AND a.AE_DATE + a.AE_TIME BETWEEN ''' + aStartDate + aStartTime + ''' AND ''' + aEndDate + aEndTime + ''' ';
+
+  end;
+
+
+  result := stSql;
+end;
+
+function TdmDBSelect.SelectTB_ADMIN_UserName(aName: string): string;
+var
+  stSql : string;
+begin
+  stSql := ' Select * From TB_ADMIN  ';
+  stSql := stSql + ' Where GROUP_CODE = ''' + G_stGroupCode + ''' ';
+  if aName <> '' then stSql := stSql + ' AND AD_USERNAME Like ''%' + aName + '%'' ';
+  stSql := stSql + ' Order by AD_USERID ';
+
+  result := stSql;
+end;
+
+function TdmDBSelect.SelectTB_BUILDINGAREACODE_Name(aBuildingCode,
+  aName: string): string;
+var
+  stSql : string;
+begin
+  stSql := ' Select a.*,b.BC_BUILDINGNAME From TB_BUILDINGAREACODE a ';
+  stSql := stSql + ' Inner Join TB_BUILDINGCODE b ';
+  stSql := stSql + ' ON(a.BC_BUILDINGCODE = b.BC_BUILDINGCODE ) ';
+  stSql := stSql + ' Where a.GROUP_CODE = ''' + G_stGroupCode + ''' ';
+  if aBuildingCode <> '' then stSql := stSql + ' AND a.BC_BUILDINGCODE = ' + aBuildingCode + ' ';
+  if aName <> '' then stSql := stSql + ' AND a.BC_BUILDINGAREANAME Like ''%' + aName + '%'' ';
+  stSql := stSql + ' Order by a.BC_BUILDINGCODE,a.BC_BUILDINGAREACODE ';
+
+  result := stSql;
+
+end;
+
+function TdmDBSelect.SelectTB_BUILDINGCODE_Name(aName: string): string;
+var
+  stSql : string;
+begin
+  stSql := ' Select * From TB_BUILDINGCODE ';
+  stSql := stSql + ' Where GROUP_CODE = ''' + G_stGroupCode + ''' ';
+  if aName <> '' then stSql := stSql + ' AND BC_BUILDINGNAME Like ''%' + aName + '%'' ';
+
+  result := stSql;
+
+end;
+
+function TdmDBSelect.SelectTB_BUILDINGFLOORCODE_Name(aName: string): string;
+var
+  stSql : string;
+begin
+  stSql := ' Select * From TB_BUILDINGFLOORCODE ';
+  stSql := stSql + ' Where GROUP_CODE = ''' + G_stGroupCode + ''' ';
+  if aName <> '' then stSql := stSql + ' AND BC_BUILDINGFLOORNAME Like ''%' + aName + '%'' ';
+
+  result := stSql;
+
+end;
+
+function TdmDBSelect.SelectTB_CARDGROUPCODE_Name(aName: string): string;
+var
+  stSql : string;
+begin
+  stSql := ' Select * From TB_CARDGROUPCODE ';
+  stSql := stSql + ' Where GROUP_CODE = ''' + G_stGroupCode + ''' ';
+  if aName <> '' then stSql := stSql + ' AND CA_GROUPCODENAME Like ''%' + aName + '%'' ';
+
+  result := stSql;
+end;
+
+function TdmDBSelect.SelectTB_CARDGUBUNCODE_Name(aName: string): string;
+var
+  stSql : string;
+begin
+  stSql := ' Select * From TB_CARDGUBUNCODE ';
+  stSql := stSql + ' Where GROUP_CODE = ''' + G_stGroupCode + ''' ';
+  if aName <> '' then stSql := stSql + ' AND CA_GUBUNNAME Like ''%' + aName + '%'' ';
+
+  result := stSql;
+end;
+
+function TdmDBSelect.SelectTB_CARDPERMITGROUP_GradeDoorList(aGroupCode,
+  aBuildingCode, aBuildingAreaCode, aName: string): string;
+var
+  stSql : string;
+begin
+  stSql := ' Select TB_DEVICE.* from TB_DEVICE ';
+  stSql := stSql + ' Inner JOIN ( select DE_SEQ from TB_CARDPERMITGROUP ';
+  stSql := stSql + ' Where CA_GROUPCODE = ' + aGroupCode + ' ';
+  stSql := stSql + ' AND CP_PERMIT = ''1'' ';
+  stSql := stSql + ' ) A';
+  stSql := stSql + ' ON (TB_DEVICE.DE_SEQ = A.DE_SEQ) ';
+  stSql := stSql + ' WHERE TB_DEVICE.GROUP_CODE = ''' + G_stGroupCode + ''' ';
+  if isDigit(aBuildingCode) then stSql := stSql + ' AND TB_DEVICE.BC_BUILDINGCODE = ' + aBuildingCode + ' ';
+  if isDigit(aBuildingAreaCode) then stSql := stSql + ' AND TB_DEVICE.BC_BUILDINGAREACODE = ' + aBuildingAreaCode + ' ';
+  if aName <> '' then stSql := stSql + ' AND TB_DEVICE.DE_DEVICENAME Like ''%' + aName + '%'' ';
+
+  result := stSql;
+end;
+
+function TdmDBSelect.SelectTB_CARDPERMITGROUP_NotGradeDoorList(aGroupCode,
+  aBuildingCode, aBuildingAreaCode, aName: string): string;
+var
+  stSql : string;
+begin
+  stSql := ' Select TB_DEVICE.* from TB_DEVICE ';
+  stSql := stSql + ' LEFT JOIN ( select DE_SEQ from TB_CARDPERMITGROUP ';
+  stSql := stSql + ' Where CA_GROUPCODE = ' + aGroupCode + ' ';
+  stSql := stSql + ' AND CP_PERMIT = ''1'' ';
+  stSql := stSql + ' ) A';
+  stSql := stSql + ' ON (TB_DEVICE.DE_SEQ = A.DE_SEQ) ';
+  stSql := stSql + ' WHERE ((A.DE_SEQ) IS NULL) ';
+  if isDigit(aBuildingCode) then stSql := stSql + ' AND TB_DEVICE.BC_BUILDINGCODE = ' + aBuildingCode + ' ';
+  if isDigit(aBuildingAreaCode) then stSql := stSql + ' AND TB_DEVICE.BC_BUILDINGAREACODE = ' + aBuildingAreaCode + ' ';
+  if aName <> '' then stSql := stSql + ' AND TB_DEVICE.DE_DEVICENAME Like ''%' + aName + '%'' ';
+
+  result := stSql;
+end;
+
+function TdmDBSelect.SelectTB_CARD_Backup: string;
+var
+  stSql : string;
+begin
+  if G_nDBTYPE = MDB then
+  begin
+    stSql := ' Select a.CA_CARDNO,a.CA_NAME,b.BC_BUILDINGNAME,c.BC_BUILDINGAREANAME,a.CA_ADDR,d.CA_GUBUNNAME from ';
+    stSql := stSql + ' ( ';
+    stSql := stSql + ' ( ';
+    stSql := stSql + ' ( ';
+    stSql := stSql + ' ( ';
+    stSql := stSql + ' TB_CARD a ';
+    stSql := stSql + ' LEFT JOIN TB_BUILDINGCODE b ';
+    stSql := stSql + ' ON ( a.BC_BUILDINGCODE = b.BC_BUILDINGCODE) ';
+    stSql := stSql + ' ) ';
+    stSql := stSql + ' LEFT JOIN TB_BUILDINGAREACODE c ';
+    stSql := stSql + ' ON ( a.BC_BUILDINGCODE = c.BC_BUILDINGCODE) ';
+    stSql := stSql + ' AND ( a.BC_BUILDINGAREACODE = c.BC_BUILDINGAREACODE) ';
+    stSql := stSql + ' ) ';
+    stSql := stSql + ' LEFT JOIN TB_CARDGUBUNCODE d ';
+    stSql := stSql + ' ON ( a.CA_GUBUN = d.CA_GUBUN) ';
+    stSql := stSql + ' ) ';
+    stSql := stSql + ' LEFT JOIN TB_CARDGROUPCODE e ';
+    stSql := stSql + ' ON ( a.CA_GROUPCODE = e.CA_GROUPCODE) ';
+    stSql := stSql + ' ) ';
+    stSql := stSql + ' Where a.GROUP_CODE = ''' + G_stGroupCode + ''' ';
+  end else
+  begin
+    stSql := ' Select a.CA_CARDNO,a.CA_NAME,b.BC_BUILDINGNAME,c.BC_BUILDINGAREANAME,a.CA_ADDR,d.CA_GUBUNNAME from ';
+    stSql := stSql + ' TB_CARD a ';
+    stSql := stSql + ' LEFT JOIN TB_BUILDINGCODE b ';
+    stSql := stSql + ' ON ( a.BC_BUILDINGCODE = b.BC_BUILDINGCODE ) ';
+    stSql := stSql + ' LEFT JOIN TB_BUILDINGAREACODE c ';
+    stSql := stSql + ' ON ( a.BC_BUILDINGCODE = c.BC_BUILDINGCODE ';
+    stSql := stSql + ' AND  a.BC_BUILDINGAREACODE = c.BC_BUILDINGAREACODE) ';
+    stSql := stSql + ' LEFT JOIN TB_CARDGUBUNCODE d ';
+    stSql := stSql + ' ON ( a.CA_GUBUN = d.CA_GUBUN) ';
+    stSql := stSql + ' LEFT JOIN TB_CARDGROUPCODE e ';
+    stSql := stSql + ' ON ( a.CA_GROUPCODE = e.CA_GROUPCODE) ';
+    stSql := stSql + ' Where a.GROUP_CODE = ''' + G_stGroupCode + ''' ';
+
+  end;
+  result := stSql;
+end;
+
+function TdmDBSelect.SelectTB_CARD_Name(aCardGubun, aBuildingCode,
+  aBuildingAreaCode, aName: string): string;
+var
+  stSql : string;
+begin
+  if G_nDBTYPE = MDB then
+  begin
+    stSql := ' Select a.*,b.BC_BUILDINGNAME,c.BC_BUILDINGAREANAME,d.CA_GUBUNNAME,e.CA_GROUPCODENAME from ';
+    stSql := stSql + ' ( ';
+    stSql := stSql + ' ( ';
+    stSql := stSql + ' ( ';
+    stSql := stSql + ' ( ';
+    stSql := stSql + ' TB_CARD a ';
+    stSql := stSql + ' LEFT JOIN TB_BUILDINGCODE b ';
+    stSql := stSql + ' ON ( a.BC_BUILDINGCODE = b.BC_BUILDINGCODE) ';
+    stSql := stSql + ' ) ';
+    stSql := stSql + ' LEFT JOIN TB_BUILDINGAREACODE c ';
+    stSql := stSql + ' ON ( a.BC_BUILDINGCODE = c.BC_BUILDINGCODE) ';
+    stSql := stSql + ' AND ( a.BC_BUILDINGAREACODE = c.BC_BUILDINGAREACODE) ';
+    stSql := stSql + ' ) ';
+    stSql := stSql + ' LEFT JOIN TB_CARDGUBUNCODE d ';
+    stSql := stSql + ' ON ( a.CA_GUBUN = d.CA_GUBUN) ';
+    stSql := stSql + ' ) ';
+    stSql := stSql + ' LEFT JOIN TB_CARDGROUPCODE e ';
+    stSql := stSql + ' ON ( a.CA_GROUPCODE = e.CA_GROUPCODE) ';
+    stSql := stSql + ' ) ';
+    stSql := stSql + ' Where a.GROUP_CODE = ''' + G_stGroupCode + ''' ';
+    if isDigit(aBuildingCode) then stSql := stSql + ' AND a.BC_BUILDINGCODE = ' + aBuildingCode + ' ';
+    if isDigit(aBuildingAreaCode) then stSql := stSql + ' AND a.BC_BUILDINGAREACODE = ' + aBuildingAreaCode + ' ';
+    if aName <> '' then stSql := stSql + ' AND a.CA_NAME Like ''%' + aName + '%'' ';
+  end else
+  begin
+    stSql := ' Select a.*,b.BC_BUILDINGNAME,c.BC_BUILDINGAREANAME,d.CA_GUBUNNAME,e.CA_GROUPCODENAME from ';
+    stSql := stSql + ' TB_CARD a ';
+    stSql := stSql + ' LEFT JOIN TB_BUILDINGCODE b ';
+    stSql := stSql + ' ON ( a.BC_BUILDINGCODE = b.BC_BUILDINGCODE ) ';
+    stSql := stSql + ' LEFT JOIN TB_BUILDINGAREACODE c ';
+    stSql := stSql + ' ON ( a.BC_BUILDINGCODE = c.BC_BUILDINGCODE ';
+    stSql := stSql + ' AND  a.BC_BUILDINGAREACODE = c.BC_BUILDINGAREACODE) ';
+    stSql := stSql + ' LEFT JOIN TB_CARDGUBUNCODE d ';
+    stSql := stSql + ' ON ( a.CA_GUBUN = d.CA_GUBUN) ';
+    stSql := stSql + ' LEFT JOIN TB_CARDGROUPCODE e ';
+    stSql := stSql + ' ON ( a.CA_GROUPCODE = e.CA_GROUPCODE) ';
+    stSql := stSql + ' Where a.GROUP_CODE = ''' + G_stGroupCode + ''' ';
+    if isDigit(aBuildingCode) then stSql := stSql + ' AND a.BC_BUILDINGCODE = ' + aBuildingCode + ' ';
+    if isDigit(aBuildingAreaCode) then stSql := stSql + ' AND a.BC_BUILDINGAREACODE = ' + aBuildingAreaCode + ' ';
+    if aName <> '' then stSql := stSql + ' AND a.CA_NAME Like ''%' + aName + '%'' ';
+
+  end;
+  result := stSql;
+end;
+
+function TdmDBSelect.SelectTB_DEVICECARDNO_CardName(aBuildingCode,
+  aBuildingAreaCode, aCardGubun, aCardName: string): string;
+var
+  stSql : string;
+begin
+  if G_nDBTYPE = MDB then
+  begin
+    stSql := ' Select a.*,';
+    stSql := stSql + ' b.CA_ADDR,b.CA_NAME,';
+    stSql := stSql + ' c.DE_DEVICENAME,';
+    stSql := stSql + ' d.BC_BUILDINGNAME as DOORBUILDINGNAME,';
+    stSql := stSql + ' e.BC_BUILDINGAREANAME as DOORBUILDINGAREANAME,';
+    stSql := stSql + ' f.BC_BUILDINGNAME as CARDBUILDINGNAME,';
+    stSql := stSql + ' g.BC_BUILDINGAREANAME as CARDBUILDINGAREANAME,';
+    stSql := stSql + ' h.CA_GUBUNNAME ';
+    stSql := stSql + ' from ';
+    stSql := stSql + ' ( ';
+    stSql := stSql + ' ( ';
+    stSql := stSql + ' ( ';
+    stSql := stSql + ' ( ';
+    stSql := stSql + ' ( ';
+    stSql := stSql + ' ( ';
+    stSql := stSql + ' ( ';
+    stSql := stSql + ' ( select * from TB_DEVICECARDNO where CP_PERMIT = ''1'' ) a ';
+    stSql := stSql + ' Inner Join ( select * from TB_CARD ';
+    stSql := stSql + ' where GROUP_CODE = ''' + G_stGroupCode + ''' ';
+    if isDigit(aBuildingCode) then stSql := stSql + ' AND BC_BUILDINGCODE = ' + aBuildingCode + ' ';
+    if isDigit(aBuildingAreaCode) then stSql := stSql + ' AND BC_BUILDINGAREACODE = ' + aBuildingAreaCode + ' ';
+    if isDigit(aCardGubun) then stSql := stSql + ' AND CA_GUBUN = ' + aCardGubun + ' ';
+    if aCardName <> '' then stSql := stSql + ' AND CA_NAME Like ''%' + aCardName + '%'' ';
+    stSql := stSql + ') b ';
+    stSql := stSql + ' ON (a.CA_CARDNO = b.CA_CARDNO ) ';
+    stSql := stSql + ' ) ';
+    stSql := stSql + ' Left Join TB_DEVICE c ';
+    stSql := stSql + ' ON (a.DE_SEQ = c.DE_SEQ ) ';
+    stSql := stSql + ' ) ';
+    stSql := stSql + ' Left Join TB_BUILDINGCODE d ';
+    stSql := stSql + ' ON (c.BC_BUILDINGCODE = d.BC_BUILDINGCODE ) ';
+    stSql := stSql + ' ) ';
+    stSql := stSql + ' Left Join TB_BUILDINGAREACODE e ';
+    stSql := stSql + ' ON (c.BC_BUILDINGCODE = e.BC_BUILDINGCODE ) ';
+    stSql := stSql + ' AND (c.BC_BUILDINGAREACODE = e.BC_BUILDINGAREACODE ) ';
+    stSql := stSql + ' ) ';
+    stSql := stSql + ' Left Join TB_BUILDINGCODE f ';
+    stSql := stSql + ' ON (b.BC_BUILDINGCODE = f.BC_BUILDINGCODE ) ';
+    stSql := stSql + ' ) ';
+    stSql := stSql + ' Left Join TB_BUILDINGAREACODE g ';
+    stSql := stSql + ' ON (b.BC_BUILDINGCODE = g.BC_BUILDINGCODE ) ';
+    stSql := stSql + ' AND (b.BC_BUILDINGAREACODE = g.BC_BUILDINGAREACODE ) ';
+    stSql := stSql + ' ) ';
+    stSql := stSql + ' Left Join TB_CARDGUBUNCODE h ';
+    stSql := stSql + ' ON (b.CA_GUBUN = h.CA_GUBUN ) ';
+    stSql := stSql + ' ) ';
+    stSql := stSql + ' where a.GROUP_CODE = ''' + G_stGroupCode + ''' ';
+  end else
+  begin
+    stSql := ' Select a.*,';
+    stSql := stSql + ' b.CA_ADDR,b.CA_NAME,';
+    stSql := stSql + ' c.DE_DEVICENAME,';
+    stSql := stSql + ' d.BC_BUILDINGNAME as DOORBUILDINGNAME,';
+    stSql := stSql + ' e.BC_BUILDINGAREANAME as DOORBUILDINGAREANAME,';
+    stSql := stSql + ' f.BC_BUILDINGNAME as CARDBUILDINGNAME,';
+    stSql := stSql + ' g.BC_BUILDINGAREANAME as CARDBUILDINGAREANAME,';
+    stSql := stSql + ' h.CA_GUBUNNAME ';
+    stSql := stSql + ' from ';
+    stSql := stSql + ' ( select * from TB_DEVICECARDNO where CP_PERMIT = ''1'' ) a ';
+    stSql := stSql + ' Inner Join ( select * from TB_CARD ';
+    stSql := stSql + ' where GROUP_CODE = ''' + G_stGroupCode + ''' ';
+    if isDigit(aBuildingCode) then stSql := stSql + ' AND BC_BUILDINGCODE = ' + aBuildingCode + ' ';
+    if isDigit(aBuildingAreaCode) then stSql := stSql + ' AND BC_BUILDINGAREACODE = ' + aBuildingAreaCode + ' ';
+    if isDigit(aCardGubun) then stSql := stSql + ' AND CA_GUBUN = ' + aCardGubun + ' ';
+    if aCardName <> '' then stSql := stSql + ' AND CA_NAME Like ''%' + aCardName + '%'' ';
+    stSql := stSql + ') b ';
+    stSql := stSql + ' ON (a.CA_CARDNO = b.CA_CARDNO ) ';
+    stSql := stSql + ' Left Join TB_DEVICE c ';
+    stSql := stSql + ' ON (a.DE_SEQ = c.DE_SEQ ) ';
+    stSql := stSql + ' Left Join TB_BUILDINGCODE d ';
+    stSql := stSql + ' ON (c.BC_BUILDINGCODE = d.BC_BUILDINGCODE ) ';
+    stSql := stSql + ' Left Join TB_BUILDINGAREACODE e ';
+    stSql := stSql + ' ON (c.BC_BUILDINGCODE = e.BC_BUILDINGCODE  ';
+    stSql := stSql + ' AND c.BC_BUILDINGAREACODE = e.BC_BUILDINGAREACODE ) ';
+    stSql := stSql + ' Left Join TB_BUILDINGCODE f ';
+    stSql := stSql + ' ON (b.BC_BUILDINGCODE = f.BC_BUILDINGCODE ) ';
+    stSql := stSql + ' Left Join TB_BUILDINGAREACODE g ';
+    stSql := stSql + ' ON (b.BC_BUILDINGCODE = g.BC_BUILDINGCODE ) ';
+    stSql := stSql + ' AND (b.BC_BUILDINGAREACODE = g.BC_BUILDINGAREACODE ) ';
+    stSql := stSql + ' Left Join TB_CARDGUBUNCODE h ';
+    stSql := stSql + ' ON (b.CA_GUBUN = h.CA_GUBUN ) ';
+    stSql := stSql + ' where a.GROUP_CODE = ''' + G_stGroupCode + ''' ';
+
+  end;
+
+  result := stSql;
+end;
+
+function TdmDBSelect.SelectTB_DEVICECARDNO_CardNoPermit(aDeviceSeq,aCardNo: string): string;
+var
+  stSql : string;
+begin
+  if G_nDBTYPE = MDB then
+  begin
+    stSql := 'select a.*,b.CA_CARDNO as CARDNO,b.CA_STARTYMDHMS,b.CA_ENDYMDHMS,b.CA_ADDR from TB_DEVICECARDNO a ';
+    stSql := stSql + ' Left Join (select * from TB_CARD ';
+    stSql := stSql + '      where mid(CA_STARTYMDHMS,1,8) <= ''' + formatDateTime('yyyymmdd',now) + ''' ';
+    stSql := stSql + '      AND mid(CA_ENDYMDHMS,1,8) >= ''' + formatDateTime('yyyymmdd',now) + ''') b ';
+    stSql := stSql + ' ON(a.CA_CARDNO = b.CA_CARDNO ) ';
+    stSql := stSql + ' Where a.CA_CARDNO = ''' + aCardNo + ''' ';
+    stSql := stSql + ' AND a.DE_SEQ = ' + aDeviceSeq + ' ';
+  end else
+  begin
+    stSql := 'select a.*,b.CA_CARDNO as CARDNO,b.CA_STARTYMDHMS,b.CA_ENDYMDHMS,b.CA_ADDR from TB_DEVICECARDNO a ';
+    stSql := stSql + ' Left Join (select * from TB_CARD ';
+    stSql := stSql + '      where substring(CA_STARTYMDHMS,1,8) <= ''' + formatDateTime('yyyymmdd',now) + ''' ';
+    stSql := stSql + '      AND substring(CA_ENDYMDHMS,1,8) >= ''' + formatDateTime('yyyymmdd',now) + ''') b ';
+    stSql := stSql + ' ON(a.CA_CARDNO = b.CA_CARDNO ) ';
+    stSql := stSql + ' Where a.CA_CARDNO = ''' + aCardNo + ''' ';
+    stSql := stSql + ' AND a.DE_SEQ = ' + aDeviceSeq + ' ';
+  end;
+  result := stSql;
+end;
+
+function TdmDBSelect.SelectTB_DEVICECARDNO_DoorCode(aBuildingCode,
+  aBuildingAreaCode, aDoorCode: string): string;
+var
+  stSql : string;
+begin
+  if G_nDBTYPE = MDB then
+  begin
+    stSql := ' Select a.*,';
+    stSql := stSql + ' b.CA_ADDR,b.CA_NAME,';
+    stSql := stSql + ' c.DE_DEVICENAME,';
+    stSql := stSql + ' d.BC_BUILDINGNAME as DOORBUILDINGNAME,';
+    stSql := stSql + ' e.BC_BUILDINGAREANAME as DOORBUILDINGAREANAME,';
+    stSql := stSql + ' f.BC_BUILDINGNAME as CARDBUILDINGNAME,';
+    stSql := stSql + ' g.BC_BUILDINGAREANAME as CARDBUILDINGAREANAME,';
+    stSql := stSql + ' h.CA_GUBUNNAME ';
+    stSql := stSql + ' from ';
+    stSql := stSql + ' ( ';
+    stSql := stSql + ' ( ';
+    stSql := stSql + ' ( ';
+    stSql := stSql + ' ( ';
+    stSql := stSql + ' ( ';
+    stSql := stSql + ' ( ';
+    stSql := stSql + ' ( ';
+    stSql := stSql + ' ( select * from TB_DEVICECARDNO where CP_PERMIT = ''1'' ) a ';
+    stSql := stSql + ' Inner Join (select * from TB_DEVICE  ';
+    stSql := stSql + ' where GROUP_CODE = ''' + G_stGroupCode + ''' ';
+    if isDigit(aBuildingCode) then stSql := stSql + ' AND BC_BUILDINGCODE = ' + aBuildingCode + ' ';
+    if isDigit(aBuildingAreaCode) then stSql := stSql + ' AND BC_BUILDINGAREACODE = ' + aBuildingAreaCode + ' ';
+    if isDigit(aDoorCode) then stSql := stSql + ' AND DE_SEQ = ' + aDoorCode + ' ';
+    stSql := stSql + ') c ';
+    stSql := stSql + ' ON (a.DE_SEQ = c.DE_SEQ ) ';
+    stSql := stSql + ' ) ';
+    stSql := stSql + ' Left Join TB_CARD b ';
+    stSql := stSql + ' ON (a.CA_CARDNO = b.CA_CARDNO ) ';
+    stSql := stSql + ' ) ';
+    stSql := stSql + ' Left Join TB_BUILDINGCODE d ';
+    stSql := stSql + ' ON (c.BC_BUILDINGCODE = d.BC_BUILDINGCODE ) ';
+    stSql := stSql + ' ) ';
+    stSql := stSql + ' Left Join TB_BUILDINGAREACODE e ';
+    stSql := stSql + ' ON (c.BC_BUILDINGCODE = e.BC_BUILDINGCODE ) ';
+    stSql := stSql + ' AND (c.BC_BUILDINGAREACODE = e.BC_BUILDINGAREACODE ) ';
+    stSql := stSql + ' ) ';
+    stSql := stSql + ' Left Join TB_BUILDINGCODE f ';
+    stSql := stSql + ' ON (b.BC_BUILDINGCODE = f.BC_BUILDINGCODE ) ';
+    stSql := stSql + ' ) ';
+    stSql := stSql + ' Left Join TB_BUILDINGAREACODE g ';
+    stSql := stSql + ' ON (b.BC_BUILDINGCODE = g.BC_BUILDINGCODE ) ';
+    stSql := stSql + ' AND (b.BC_BUILDINGAREACODE = g.BC_BUILDINGAREACODE ) ';
+    stSql := stSql + ' ) ';
+    stSql := stSql + ' Left Join TB_CARDGUBUNCODE h ';
+    stSql := stSql + ' ON (b.CA_GUBUN = h.CA_GUBUN ) ';
+    stSql := stSql + ' ) ';
+    stSql := stSql + ' where a.GROUP_CODE = ''' + G_stGroupCode + ''' ';
+  end else
+  begin
+    stSql := ' Select a.*,';
+    stSql := stSql + ' b.CA_ADDR,b.CA_NAME,';
+    stSql := stSql + ' c.DE_DEVICENAME,';
+    stSql := stSql + ' d.BC_BUILDINGNAME as DOORBUILDINGNAME,';
+    stSql := stSql + ' e.BC_BUILDINGAREANAME as DOORBUILDINGAREANAME,';
+    stSql := stSql + ' f.BC_BUILDINGNAME as CARDBUILDINGNAME,';
+    stSql := stSql + ' g.BC_BUILDINGAREANAME as CARDBUILDINGAREANAME,';
+    stSql := stSql + ' h.CA_GUBUNNAME ';
+    stSql := stSql + ' from ';
+    stSql := stSql + ' ( select * from TB_DEVICECARDNO where CP_PERMIT = ''1'' ) a ';
+    stSql := stSql + ' Inner Join (select * from TB_DEVICE  ';
+    stSql := stSql + ' where GROUP_CODE = ''' + G_stGroupCode + ''' ';
+    if isDigit(aBuildingCode) then stSql := stSql + ' AND BC_BUILDINGCODE = ' + aBuildingCode + ' ';
+    if isDigit(aBuildingAreaCode) then stSql := stSql + ' AND BC_BUILDINGAREACODE = ' + aBuildingAreaCode + ' ';
+    if isDigit(aDoorCode) then stSql := stSql + ' AND DE_SEQ = ' + aDoorCode + ' ';
+    stSql := stSql + ') c ';
+    stSql := stSql + ' ON (a.DE_SEQ = c.DE_SEQ ) ';
+    stSql := stSql + ' Left Join TB_CARD b ';
+    stSql := stSql + ' ON (a.CA_CARDNO = b.CA_CARDNO ) ';
+    stSql := stSql + ' Left Join TB_BUILDINGCODE d ';
+    stSql := stSql + ' ON (c.BC_BUILDINGCODE = d.BC_BUILDINGCODE ) ';
+    stSql := stSql + ' Left Join TB_BUILDINGAREACODE e ';
+    stSql := stSql + ' ON (c.BC_BUILDINGCODE = e.BC_BUILDINGCODE  ';
+    stSql := stSql + ' AND c.BC_BUILDINGAREACODE = e.BC_BUILDINGAREACODE ) ';
+    stSql := stSql + ' Left Join TB_BUILDINGCODE f ';
+    stSql := stSql + ' ON (b.BC_BUILDINGCODE = f.BC_BUILDINGCODE ) ';
+    stSql := stSql + ' Left Join TB_BUILDINGAREACODE g ';
+    stSql := stSql + ' ON (b.BC_BUILDINGCODE = g.BC_BUILDINGCODE ) ';
+    stSql := stSql + ' AND (b.BC_BUILDINGAREACODE = g.BC_BUILDINGAREACODE ) ';
+    stSql := stSql + ' Left Join TB_CARDGUBUNCODE h ';
+    stSql := stSql + ' ON (b.CA_GUBUN = h.CA_GUBUN ) ';
+    stSql := stSql + ' where a.GROUP_CODE = ''' + G_stGroupCode + ''' ';
+
+  end;
+
+  result := stSql;
+end;
+
+function TdmDBSelect.SelectTB_DEVICECARDNO_SendType(aSendType: string): string;
+var
+  stSql : string;
+begin
+  if G_nDBTYPE = MDB then
+  begin
+    stSql := 'select a.*,b.CA_CARDNO as CARDNO,b.CA_STARTYMDHMS,b.CA_ENDYMDHMS,b.CA_ADDR from TB_DEVICECARDNO a ';
+    stSql := stSql + ' Left Join (select * from TB_CARD ';
+    stSql := stSql + '      where mid(CA_STARTYMDHMS,1,8) <= ''' + formatDateTime('yyyymmdd',now) + ''' ';
+    stSql := stSql + '      AND mid(CA_ENDYMDHMS,1,8) >= ''' + formatDateTime('yyyymmdd',now) + ''') b ';
+    stSql := stSql + ' ON(a.CA_CARDNO = b.CA_CARDNO ) ';
+    stSql := stSql + ' Where a.CA_SEND = ''' + aSendType + ''' ';
+  end else
+  begin
+    stSql := 'select a.*,b.CA_CARDNO as CARDNO,b.CA_STARTYMDHMS,b.CA_ENDYMDHMS,b.CA_ADDR from TB_DEVICECARDNO a ';
+    stSql := stSql + ' Left Join (select * from TB_CARD ';
+    stSql := stSql + '      where substring(CA_STARTYMDHMS,1,8) <= ''' + formatDateTime('yyyymmdd',now) + ''' ';
+    stSql := stSql + '      AND substring(CA_ENDYMDHMS,1,8) >= ''' + formatDateTime('yyyymmdd',now) + ''') b ';
+    stSql := stSql + ' ON(a.CA_CARDNO = b.CA_CARDNO ) ';
+    stSql := stSql + ' Where a.CA_SEND = ''' + aSendType + ''' ';
+  end;
+  result := stSql;
+end;
+
+function TdmDBSelect.SelectTB_DEVICE_CardGrade(aCardNo: string): string;
+var
+  stSql : string;
+begin
+  stSql := ' Select a.*,b.CP_PERMIT from ';
+  stSql := stSql + ' TB_DEVICE a ';
+  stSql := stSql + ' Left Join (select * from TB_DEVICECARDNO where CA_CARDNO = ''' + aCardNo + ''') b ';
+  stSql := stSql + ' ON (a.DE_SEQ = b.DE_SEQ ) ';
+  stSql := stSql + ' Where a.GROUP_CODE = ''' + G_stGroupCode + ''' ';
+
+  result := stSql;
+end;
+
+function TdmDBSelect.SelectTB_DEVICE_Name(aBuildingCode, aAreaCode, aFloorCode,
+  aName: string): string;
+var
+  stSql : string;
+begin
+  if G_nDBTYPE = MDB then
+  begin
+    stSql := ' Select a.*,b.DE_TYPENAME,c.DE_LOCKTYPENAME,d.DE_LOCKMODENAME,e.BC_BUILDINGNAME,f.BC_BUILDINGAREANAME,g.BC_BUILDINGFLOORNAME From ';
+    stSql := stSql + ' ( ';
+    stSql := stSql + ' ( ';
+    stSql := stSql + ' ( ';
+    stSql := stSql + ' ( ';
+    stSql := stSql + ' ( ';
+    stSql := stSql + ' ( ';
+    stSql := stSql + ' TB_DEVICE  a ';
+    stSql := stSql + ' Left Join TB_DEVICETYPE b ';
+    stSql := stSql + ' ON (a.DE_TYPE = b.DE_TYPE ) ';
+    stSql := stSql + ' ) ';
+    stSql := stSql + ' Left Join TB_DOORCONTROLTYPE c ';
+    stSql := stSql + ' ON (a.DE_LOCKTYPE = c.DE_LOCKTYPE ) ';
+    stSql := stSql + ' ) ';
+    stSql := stSql + ' Left Join TB_DOORLOCKPORT d ';
+    stSql := stSql + ' ON (a.DE_LOCKMODE = d.DE_LOCKMODE ) ';
+    stSql := stSql + ' ) ';
+    stSql := stSql + ' Left Join TB_BUILDINGCODE e ';
+    stSql := stSql + ' ON (a.BC_BUILDINGCODE = e.BC_BUILDINGCODE ) ';
+    stSql := stSql + ' ) ';
+    stSql := stSql + ' Left Join TB_BUILDINGAREACODE f ';
+    stSql := stSql + ' ON (a.BC_BUILDINGCODE = f.BC_BUILDINGCODE ) ';
+    stSql := stSql + ' AND (a.BC_BUILDINGAREACODE = f.BC_BUILDINGAREACODE ) ';
+    stSql := stSql + ' ) ';
+    stSql := stSql + ' Left Join TB_BUILDINGFLOORCODE g ';
+    stSql := stSql + ' ON (a.BC_BUILDINGFLOORCODE = g.BC_BUILDINGFLOORCODE ) ';
+    stSql := stSql + ' ) ';
+    stSql := stSql + ' Where a.GROUP_CODE = ''' + G_stGroupCode + ''' ';
+    if aBuildingCode <> '' then stSql := stSql + ' AND a.BC_BUILDINGCODE = ' + aBuildingCode + ' ';
+    if aAreaCode <> '' then stSql := stSql + ' AND a.BC_BUILDINGAREACODE = ' + aAreaCode + ' ';
+    if aFloorCode <> '' then stSql := stSql + ' AND a.BC_BUILDINGFLOORCODE = ' + aFloorCode + ' ';
+    if aName <> '' then stSql := stSql + ' AND a.DE_DEVICENAME Like ''%' + aName + '%'' ';
+  end else
+  begin
+    stSql := ' Select a.*,b.DE_TYPENAME,c.DE_LOCKTYPENAME,d.DE_LOCKMODENAME,e.BC_BUILDINGNAME,f.BC_BUILDINGAREANAME,g.BC_BUILDINGFLOORNAME From ';
+    stSql := stSql + ' TB_DEVICE  a ';
+    stSql := stSql + ' Left Join TB_DEVICETYPE b ';
+    stSql := stSql + ' ON (a.DE_TYPE = b.DE_TYPE ) ';
+    stSql := stSql + ' Left Join TB_DOORCONTROLTYPE c ';
+    stSql := stSql + ' ON (a.DE_LOCKTYPE = c.DE_LOCKTYPE ) ';
+    stSql := stSql + ' Left Join TB_DOORLOCKPORT d ';
+    stSql := stSql + ' ON (a.DE_LOCKMODE = d.DE_LOCKMODE ) ';
+    stSql := stSql + ' Left Join TB_BUILDINGCODE e ';
+    stSql := stSql + ' ON (a.BC_BUILDINGCODE = e.BC_BUILDINGCODE ) ';
+    stSql := stSql + ' Left Join TB_BUILDINGAREACODE f ';
+    stSql := stSql + ' ON (a.BC_BUILDINGCODE = f.BC_BUILDINGCODE  ';
+    stSql := stSql + ' AND a.BC_BUILDINGAREACODE = f.BC_BUILDINGAREACODE ) ';
+    stSql := stSql + ' Left Join TB_BUILDINGFLOORCODE g ';
+    stSql := stSql + ' ON (a.BC_BUILDINGFLOORCODE = g.BC_BUILDINGFLOORCODE ) ';
+    stSql := stSql + ' Where a.GROUP_CODE = ''' + G_stGroupCode + ''' ';
+    if aBuildingCode <> '' then stSql := stSql + ' AND a.BC_BUILDINGCODE = ' + aBuildingCode + ' ';
+    if aAreaCode <> '' then stSql := stSql + ' AND a.BC_BUILDINGAREACODE = ' + aAreaCode + ' ';
+    if aFloorCode <> '' then stSql := stSql + ' AND a.BC_BUILDINGFLOORCODE = ' + aFloorCode + ' ';
+    if aName <> '' then stSql := stSql + ' AND a.DE_DEVICENAME Like ''%' + aName + '%'' ';
+  end;
+
+  result := stSql;
+
+end;
+
+end.

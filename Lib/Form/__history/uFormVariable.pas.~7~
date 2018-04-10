@@ -1,0 +1,24 @@
+unit uFormVariable;
+
+interface
+
+const
+  MAXFORMCOUNT  = 200;
+
+const
+  con_FormACCESSREPORT = 1;
+  con_FormADMINUSERID = 2;
+  con_FormDeviceMONITOR = 10;
+  con_FormMONITOR = 20;
+
+
+
+
+var
+  G_bFormEnabled: Array [0..MAXFORMCOUNT] of Boolean;     //폼 활성화 여부
+
+implementation
+
+
+
+end.

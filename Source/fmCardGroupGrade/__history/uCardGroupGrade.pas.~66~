@@ -1,0 +1,685 @@
+﻿unit uCardGroupGrade;
+
+interface
+
+uses
+  Winapi.Windows, Winapi.Messages, System.SysUtils, System.Variants, System.Classes, Vcl.Graphics,
+  Vcl.Controls, Vcl.Forms, Vcl.Dialogs, uSubForm, CommandArray, AdvGlassButton,
+  Vcl.Grids, AdvObj, BaseGrid, AdvGrid, Vcl.StdCtrls, AdvEdit, AdvSmoothLabel,
+  AdvSmoothPanel, AdvOfficeTabSet, W7Classes, W7Panels,ActiveX,ADODB,
+  Vcl.ComCtrls, Vcl.Menus, Vcl.ExtCtrls, AdvSmoothTabPager, Vcl.ImgList,
+  AdvSplitter, AdvOfficeTabSetStylers, AdvToolBar, AdvToolBarStylers,
+  AdvGlowButton, AdvOfficePager, AdvAppStyler, AdvOfficePagerStylers,
+  Vcl.Imaging.pngimage, AdvCombo;
+
+const
+  con_LocalCompanyImageIndex = 0;
+  con_LocalEmployeeImageIndex = 1;
+  con_LocalBuildingImageIndex = 2;
+  con_LocalGroupImageIndex = 3;
+
+type
+  TfmCardGroupGrade = class(TfmASubForm)
+    BodyPanel: TW7Panel;
+    List: TAdvSmoothPanel;
+    pm_Work: TPopupMenu;
+    pm_EmGroupGrade: TMenuItem;
+    pan_emPermitAdmin: TAdvSmoothPanel;
+    MenuImageList16: TImageList;
+    pm_ParentEmGroupGrade: TMenuItem;
+    N2: TMenuItem;
+    AdvSplitter1: TAdvSplitter;
+    AdvOfficePager1: TAdvOfficePager;
+    AdvOfficePage1: TAdvOfficePage;
+    btn_minimize: TAdvGlowButton;
+    btn_Close: TAdvGlowButton;
+    lb_List: TLabel;
+    AdvOfficePagerOfficeStyler1: TAdvOfficePagerOfficeStyler;
+    AdvFormStyler1: TAdvFormStyler;
+    AdvOfficeTabSetOfficeStyler1: TAdvOfficeTabSetOfficeStyler;
+    lb_EmployeeList: TLabel;
+    btn_emGradeComplete: TAdvGlassButton;
+    tp_Grade: TPageControl;
+    tab_Doorgrade: TTabSheet;
+    pan_NotPermitDoor: TAdvSmoothPanel;
+    pan_NotPermitDoorCount: TAdvSmoothPanel;
+    sg_NotPermitDoor: TAdvStringGrid;
+    pan_PermitAction: TAdvSmoothPanel;
+    pan_PermitDoor: TAdvSmoothPanel;
+    pan_DoorPermitCount: TAdvSmoothPanel;
+    sg_PermitDoor: TAdvStringGrid;
+    lb_NotDoorPermit: TLabel;
+    lb_PermitDoor: TLabel;
+    btn_PermitDoorAdd: TAdvGlowButton;
+    btn_PermitDoorDelete: TAdvGlowButton;
+    lb_DoorNotPermitCountName: TAdvSmoothLabel;
+    lb_Count1: TAdvSmoothLabel;
+    lb_NotPermitDoorCount: TAdvSmoothLabel;
+    lb_DoorPermitCountName: TAdvSmoothLabel;
+    lb_PermitDoorCount: TAdvSmoothLabel;
+    lb_Count2: TAdvSmoothLabel;
+    pan_progress: TAdvSmoothPanel;
+    lb_ProgressCount: TAdvSmoothLabel;
+    ProgressBar1: TProgressBar;
+    sg_GroupCodeList: TAdvStringGrid;
+    AdvSmoothLabel1: TAdvSmoothLabel;
+    cmb_SearchBuilding: TAdvComboBox;
+    cmb_SearchBuildingArea: TAdvComboBox;
+    AdvSmoothLabel2: TAdvSmoothLabel;
+    AdvSmoothLabel4: TAdvSmoothLabel;
+    ed_SearchName: TAdvEdit;
+    procedure FormClose(Sender: TObject; var Action: TCloseAction);
+    procedure FormResize(Sender: TObject);
+    procedure FormShow(Sender: TObject);
+    procedure FormCreate(Sender: TObject);
+    procedure btn_emGradeCompleteClick(Sender: TObject);
+    procedure sg_NotPermitDoorCheckBoxClick(Sender: TObject; ACol,
+      ARow: Integer; State: Boolean);
+    procedure sg_PermitDoorCheckBoxClick(Sender: TObject; ACol, ARow: Integer;
+      State: Boolean);
+    procedure btn_PermitDoorAddClick(Sender: TObject);
+    procedure btn_PermitDoorDeleteClick(Sender: TObject);
+    procedure ListResize(Sender: TObject);
+    procedure pan_emPermitAdminResize(Sender: TObject);
+    procedure tp_GradeResize(Sender: TObject);
+    procedure btn_minimizeClick(Sender: TObject);
+    procedure btn_CloseClick(Sender: TObject);
+    procedure cmb_SearchBuildingChange(Sender: TObject);
+    procedure sg_NotPermitDoorResize(Sender: TObject);
+    procedure sg_PermitDoorResize(Sender: TObject);
+    procedure cmb_SearchBuildingAreaChange(Sender: TObject);
+    procedure ed_SearchNameKeyUp(Sender: TObject; var Key: Word;
+      Shift: TShiftState);
+    procedure sg_GroupCodeListClick(Sender: TObject);
+  private
+    BuildingDoorCodeList : TStringList; //빌딩별 출입문 코드 리스트를 가지고 있자.
+    GradeDoorCodeList : TStringList;
+    NotGradeDoorCodeList : TStringList;  //출입권한이 없는 리스트
+    SearchBuildingCodeList : TStringList;
+    SearchBuildingAreaCodeList : TStringList;
+    L_nPermitDoorCheckCount : integer;           //삭제시 출입문 선택 갯수
+    L_nNotPermitDoorCheckCount : integer;        //등록시 출입문 선택 갯수
+    L_stMenuID : string;
+    L_stButtonCloseCaption : string;
+    L_stWork : string;
+  private
+    procedure FormNameSetting;
+    procedure FontSetting;
+    procedure SearchGroupCodeList(aCode:string;aTopRow:integer = 0);
+    procedure AdvStrinGridSetAllCheck(Sender: TObject;bchkState:Boolean);
+    { Private declarations }
+    procedure SearchGroupNotGradeDoorList(aTopRow:integer=0);
+    procedure SearchGroupGradeDoorList(aTopRow:integer=0);
+  public
+    { Public declarations }
+    procedure Form_Close;
+    procedure FormChangeEvent(aNumber:integer);
+    procedure FormGradeRefresh;
+    procedure FormIDSetting(aID:string);
+  end;
+
+var
+  fmCardGroupGrade: TfmCardGroupGrade;
+
+implementation
+uses
+  uCardPermit,
+  uComboBoxCodeLoad,
+  uCommonFunction,
+  uCommonVariable,
+  uDataBase,
+  uDBDelete,
+  uDBVariable,
+  uDBFunction,
+  uDBInsert,
+  uDBSelect,
+  uDBUpdate,
+  uFormVariable,
+  uMain;
+{$R *.dfm}
+
+procedure TfmCardGroupGrade.AdvStrinGridSetAllCheck(Sender: TObject;
+  bchkState: Boolean);
+var
+  i : integer;
+begin
+    for i:= 1 to (Sender as TAdvStringGrid).RowCount - 1  do
+    begin
+      (Sender as TAdvStringGrid).SetCheckBoxState(0,i,bchkState);
+    end;
+end;
+
+procedure TfmCardGroupGrade.btn_CloseClick(Sender: TObject);
+begin
+  inherited;
+  Close;
+end;
+
+procedure TfmCardGroupGrade.btn_emGradeCompleteClick(Sender: TObject);
+begin
+  inherited;
+  pan_emPermitAdmin.Visible := False;
+end;
+
+procedure TfmCardGroupGrade.btn_minimizeClick(Sender: TObject);
+begin
+  inherited;
+  windowState := wsNormal;
+end;
+
+procedure TfmCardGroupGrade.btn_PermitDoorAddClick(Sender: TObject);
+var
+  stMessage : string;
+  i : integer;
+  bCheckState : Boolean;
+  stSelectGroupCode : string;
+begin
+  inherited;
+
+  stSelectGroupCode := sg_GroupCodeList.Cells[1,sg_GroupCodeList.Row];
+
+  stMessage := ' $WORK 작업 할 데이터가 선택 되지 않았습니다.';
+  stMessage := stringReplace(stMessage,'$WORK',btn_PermitDoorAdd.Caption,[rfReplaceAll]);
+  if L_nNotPermitDoorCheckCount = 0 then
+  begin
+    Application.MessageBox(PChar(stMessage),'Information',MB_OK);
+    Exit;
+  end;
+  Try
+    btn_Close.Enabled := False;
+    pan_progress.Visible := True;
+    with sg_NotPermitDoor do
+    begin
+      ProgressBar1.Max := RowCount - 1;
+      ProgressBar1.Position := 0;
+      for i := RowCount - 1 downto 1 do
+      begin
+        ProgressBar1.Position := ProgressBar1.Position + 1;
+        GetCheckBoxState(0,i, bCheckState);
+        if bCheckState then
+        begin
+          dmCardPermit.GroupDoorPermitAdd(stSelectGroupCode,Cells[2,i]);
+        end;
+        lb_ProgressCount.Caption.Text := inttostr(ProgressBar1.Position) + '/' + inttostr(ProgressBar1.Max);
+        application.ProcessMessages;
+      end;
+    end;
+    lb_ProgressCount.Caption.Text := 'Setting PRIVILEGE...' ;
+    dmCardPermit.GroupDoorPermitChange(stSelectGroupCode);
+    SearchGroupNotGradeDoorList;
+    SearchGroupGradeDoorList;
+
+  Finally
+    pan_progress.Visible := False;
+    btn_Close.Enabled := True;
+  End;
+end;
+
+procedure TfmCardGroupGrade.btn_PermitDoorDeleteClick(Sender: TObject);
+var
+  stMessage : string;
+  i : integer;
+  bCheckState : Boolean;
+  stSelectGroupCode : string;
+begin
+  inherited;
+  stSelectGroupCode := sg_GroupCodeList.Cells[1,sg_GroupCodeList.Row];
+
+  stMessage := ' $WORK 작업 할 데이터가 선택 되지 않았습니다.';
+  stMessage := stringReplace(stMessage,'$WORK',btn_PermitDoorAdd.Caption,[rfReplaceAll]);
+  if L_nPermitDoorCheckCount = 0 then
+  begin
+    Application.MessageBox(PChar(stMessage),'Information',MB_OK);
+    Exit;
+  end;
+  Try
+    btn_Close.Enabled := False;
+    pan_progress.Visible := True;
+    with sg_PermitDoor do
+    begin
+      ProgressBar1.Max := RowCount - 1;
+      ProgressBar1.Position := 0;
+      for i := RowCount - 1 downto 1 do
+      begin
+        ProgressBar1.Position := ProgressBar1.Position + 1;
+        GetCheckBoxState(0,i, bCheckState);
+        if bCheckState then
+        begin
+          dmCardPermit.GroupDoorPermitDelete(stSelectGroupCode,Cells[2,i]);
+        end;
+        lb_ProgressCount.Caption.Text := inttostr(ProgressBar1.Position) + '/' + inttostr(ProgressBar1.Max);
+        application.ProcessMessages;
+      end;
+    end;
+    lb_ProgressCount.Caption.Text := 'Setting PRIVILEGE...' ;
+    dmCardPermit.GroupDoorPermitChange(stSelectGroupCode);
+    SearchGroupNotGradeDoorList;
+    SearchGroupGradeDoorList;
+  Finally
+    pan_progress.Visible := False;
+    btn_Close.Enabled := True;
+  End;
+end;
+
+
+procedure TfmCardGroupGrade.cmb_SearchBuildingAreaChange(Sender: TObject);
+begin
+  inherited;
+  SearchGroupNotGradeDoorList;
+  SearchGroupGradeDoorList;
+
+end;
+
+procedure TfmCardGroupGrade.cmb_SearchBuildingChange(Sender: TObject);
+var
+  stBuildingCode : string;
+begin
+  inherited;
+  if cmb_SearchBuilding.ItemIndex > -1 then
+     stBuildingCode := SearchBuildingCodeList.Strings[cmb_SearchBuilding.ItemIndex];
+  dmComboBoxCodeLoad.LoadBuildingAreaCode(stBuildingCode,SearchBuildingAreaCodeList,TComboBox(cmb_SearchBuildingArea),True,'전체');
+
+  SearchGroupNotGradeDoorList;
+  SearchGroupGradeDoorList;
+end;
+
+procedure TfmCardGroupGrade.ed_SearchNameKeyUp(Sender: TObject; var Key: Word;
+  Shift: TShiftState);
+begin
+  inherited;
+  SearchGroupNotGradeDoorList;
+  SearchGroupGradeDoorList;
+
+end;
+
+procedure TfmCardGroupGrade.FontSetting;
+begin
+(*  dmFormUtil.TravelFormFontSetting(self,G_stFontName,inttostr(G_nFontSize));
+  dmFormUtil.TravelAdvOfficeTabSetOfficeStylerFontSetting(AdvOfficeTabSetOfficeStyler1, G_stFontName,inttostr(G_nFontSize));
+  dmFormUtil.FormAdvOfficeTabSetOfficeStylerSetting(AdvOfficeTabSetOfficeStyler1,G_stFormStyle);
+  dmFormUtil.FormAdvToolBarOfficeStylerSetting(AdvToolBarOfficeStyler1,G_stFormStyle);
+  dmFormUtil.FormStyleSetting(self,AdvToolBarOfficeStyler1);
+*)
+end;
+
+procedure TfmCardGroupGrade.FormChangeEvent(aNumber: integer);
+var
+  stOldData : string;
+  nIndex : integer;
+begin
+  case aNumber of
+    con_FormCardGroup : begin
+      stOldData := sg_GroupCodeList.cells[1,sg_GroupCodeList.Row];
+      SearchGroupCodeList(stOldData,sg_GroupCodeList.TopRow);
+    end;
+  end;
+end;
+
+procedure TfmCardGroupGrade.FormClose(Sender: TObject; var Action: TCloseAction);
+begin
+  inherited;
+  fmMain.FORMENABLE(con_FormCardGroupGrade,'FALSE');
+  BuildingDoorCodeList.Free;
+  SearchBuildingCodeList.Free;
+  SearchBuildingAreaCodeList.Free;
+  GradeDoorCodeList.Free;
+  NotGradeDoorCodeList.Free;  //출입권한이 없는 리스트
+
+  Action := caFree;
+end;
+
+procedure TfmCardGroupGrade.FormCreate(Sender: TObject);
+begin
+  inherited;
+  BuildingDoorCodeList := TStringList.Create;
+  SearchBuildingCodeList := TStringList.Create;
+  SearchBuildingAreaCodeList := TStringList.Create;
+  GradeDoorCodeList := TStringList.Create;
+  NotGradeDoorCodeList := TStringList.Create;  //출입권한이 없는 리스트
+  FontSetting;
+end;
+
+procedure TfmCardGroupGrade.FormGradeRefresh;
+begin
+  if IsInsertGrade or IsUpdateGrade or IsDeleteGrade then PopupMenu := pm_Work;
+  pm_EmGroupGrade.Enabled := IsInsertGrade;
+  pm_ParentEmGroupGrade.Enabled := IsDeleteGrade;
+end;
+
+procedure TfmCardGroupGrade.FormIDSetting(aID: string);
+begin
+  L_stMenuID := aID;
+end;
+
+procedure TfmCardGroupGrade.FormNameSetting;
+begin
+//
+end;
+
+procedure TfmCardGroupGrade.FormResize(Sender: TObject);
+begin
+  inherited;
+  sg_GroupCodeList.Left := 10;
+  sg_GroupCodeList.Height := List.Height - sg_GroupCodeList.Top - 30;
+  sg_GroupCodeList.Width := List.Width - (sg_GroupCodeList.Left * 2);
+  sg_GroupCodeList.ColWidths[0] := sg_GroupCodeList.Width - 10;
+  sg_GroupCodeList.ColWidths[1] := 0;
+
+  btn_Close.Left := AdvOfficePager1.Width - btn_Close.Width - 10;
+  btn_minimize.Left := btn_Close.Left - btn_minimize.Width - 2;
+
+  if Windowstate = wsMaximized then
+  begin
+    btn_minimize.Visible := False;
+    btn_Close.Visible := True;
+  end else
+  begin
+    btn_minimize.Visible := False;
+    btn_Close.Visible := False;
+  end;
+  pan_progress.Left := (Width div 2) - (pan_progress.Width div 2);
+  pan_progress.Top := (Height div 2) - (pan_progress.Height div 2);
+end;
+
+procedure TfmCardGroupGrade.FormShow(Sender: TObject);
+begin
+  inherited;
+  WindowState := wsMaximized;
+
+  FormNameSetting;
+  SearchGroupCodeList('');
+  dmComboBoxCodeLoad.LoadBuildingCode(SearchBuildingCodeList,TComboBox(cmb_SearchBuilding),True,'전체');
+  cmb_SearchBuildingChange(cmb_SearchBuilding);
+  fmMain.FORMENABLE(con_FormCardGroupGrade,'TRUE');
+end;
+
+procedure TfmCardGroupGrade.Form_Close;
+begin
+  Close;
+end;
+
+procedure TfmCardGroupGrade.ListResize(Sender: TObject);
+begin
+  inherited;
+  sg_GroupCodeList.Width := List.Width - 20;
+
+end;
+
+
+
+procedure TfmCardGroupGrade.pan_emPermitAdminResize(Sender: TObject);
+begin
+  inherited;
+  tp_Grade.Height := pan_emPermitAdmin.Height - (ed_SearchName.Top + ed_SearchName.Height) - 20;
+  tp_Grade.Width :=  pan_emPermitAdmin.Width - 20;
+
+end;
+
+
+procedure TfmCardGroupGrade.SearchGroupCodeList(aCode: string;
+  aTopRow: integer);
+var
+  stSql : string;
+  TempAdoQuery : TADOQuery;
+  nRow : integer;
+begin
+  GridInit(sg_GroupCodeList,3,2,False);
+  stSql := dmDBSelect.SelectTB_CARDGROUPCODE_Name('');
+
+  Try
+    CoInitialize(nil);
+    TempAdoQuery := TADOQuery.Create(nil);
+    TempAdoQuery.Connection := dmDataBase.ADOConnection;
+    TempAdoQuery.DisableControls;
+
+    with TempAdoQuery do
+    begin
+      Close;
+      sql.Text := stSql;
+      Try
+        Open;
+      Except
+        Exit;
+      End;
+      if recordcount < 1 then Exit;
+      with sg_GroupCodeList do
+      begin
+        nRow := 1;
+        RowCount := RecordCount + 1;
+        while Not Eof do
+        begin
+          cells[0,nRow] := FindField('CA_GROUPCODENAME').AsString;
+          cells[1,nRow] := FindField('CA_GROUPCODE').AsString;
+          if cells[1,nRow] = aCode then
+          begin
+            SelectRows(nRow,1);
+          end;
+
+          nRow := nRow + 1;
+          Next;
+        end;
+        if aTopRow <> 0 then
+        begin
+          TopRow := aTopRow;
+        end;
+      end;
+
+    end;
+  Finally
+    TempAdoQuery.EnableControls;
+    TempAdoQuery.Free;
+    CoUninitialize;
+  End;
+end;
+
+procedure TfmCardGroupGrade.SearchGroupGradeDoorList(aTopRow:integer=0);
+var
+  stSql : string;
+  TempAdoQuery : TADOQuery;
+  nRow : integer;
+  stSelectGroupCode :string;
+  stSelectBuildingCode : string;
+  stSelectBuildingAreaCode : string;
+begin
+  GridInit(sg_PermitDoor,2,2,True);
+  stSelectGroupCode := sg_GroupCodeList.Cells[1,sg_GroupCodeList.Row];
+  if Not isDigit(stSelectGroupCode) then Exit;
+  stSelectBuildingCode := '';
+  if cmb_SearchBuilding.ItemIndex > -1 then
+     stSelectBuildingCode := SearchBuildingCodeList.Strings[cmb_SearchBuilding.ItemIndex];
+  stSelectBuildingAreaCode := '';
+  if cmb_SearchBuildingArea.ItemIndex > -1 then
+     stSelectBuildingAreaCode := SearchBuildingAreaCodeList.Strings[cmb_SearchBuildingArea.ItemIndex];
+
+  stSql := dmDBSelect.SelectTB_CARDPERMITGROUP_GradeDoorList(stSelectGroupCode,stSelectBuildingCode,stSelectBuildingAreaCode,ed_SearchName.Text);
+
+  Try
+    CoInitialize(nil);
+    TempAdoQuery := TADOQuery.Create(nil);
+    TempAdoQuery.Connection := dmDataBase.ADOConnection;
+    TempAdoQuery.DisableControls;
+
+    with TempAdoQuery do
+    begin
+      Close;
+      sql.Text := stSql;
+      Try
+        Open;
+      Except
+        Exit;
+      End;
+      lb_PermitDoorCount.Caption.Text := FormatFloat('#,##0',0);
+      if recordcount < 1 then Exit;
+      with sg_PermitDoor do
+      begin
+        nRow := 1;
+        RowCount := RecordCount + 1;
+        while Not Eof do
+        begin
+          AddCheckBox(0,nRow,False,False);
+          cells[1,nRow] := FindField('DE_DEVICENAME').AsString;
+          cells[2,nRow] := FindField('DE_SEQ').AsString;
+
+          nRow := nRow + 1;
+          Next;
+        end;
+        if aTopRow <> 0 then
+        begin
+          TopRow := aTopRow;
+        end;
+        lb_PermitDoorCount.Caption.Text := FormatFloat('#,##0',recordcount);
+
+      end;
+
+    end;
+  Finally
+    TempAdoQuery.EnableControls;
+    TempAdoQuery.Free;
+    CoUninitialize;
+  End;
+end;
+
+procedure TfmCardGroupGrade.SearchGroupNotGradeDoorList(aTopRow:integer=0);
+var
+  stSql : string;
+  TempAdoQuery : TADOQuery;
+  nRow : integer;
+  stSelectGroupCode :string;
+  stSelectBuildingCode : string;
+  stSelectBuildingAreaCode : string;
+begin
+  GridInit(sg_NotPermitDoor,2,2,True);
+  stSelectGroupCode := sg_GroupCodeList.Cells[1,sg_GroupCodeList.Row];
+  if Not isDigit(stSelectGroupCode) then Exit;
+  stSelectBuildingCode := '';
+  if cmb_SearchBuilding.ItemIndex > -1 then
+     stSelectBuildingCode := SearchBuildingCodeList.Strings[cmb_SearchBuilding.ItemIndex];
+  stSelectBuildingAreaCode := '';
+  if cmb_SearchBuildingArea.ItemIndex > -1 then
+     stSelectBuildingAreaCode := SearchBuildingAreaCodeList.Strings[cmb_SearchBuildingArea.ItemIndex];
+
+  stSql := dmDBSelect.SelectTB_CARDPERMITGROUP_NotGradeDoorList(stSelectGroupCode,stSelectBuildingCode,stSelectBuildingAreaCode,ed_SearchName.Text);
+
+  Try
+    CoInitialize(nil);
+    TempAdoQuery := TADOQuery.Create(nil);
+    TempAdoQuery.Connection := dmDataBase.ADOConnection;
+    TempAdoQuery.DisableControls;
+
+    with TempAdoQuery do
+    begin
+      Close;
+      sql.Text := stSql;
+      Try
+        Open;
+      Except
+        Exit;
+      End;
+      lb_NotPermitDoorCount.Caption.Text := FormatFloat('#,##0',0);
+      if recordcount < 1 then Exit;
+      with sg_NotPermitDoor do
+      begin
+        nRow := 1;
+        RowCount := RecordCount + 1;
+        while Not Eof do
+        begin
+          AddCheckBox(0,nRow,False,False);
+          cells[1,nRow] := FindField('DE_DEVICENAME').AsString;
+          cells[2,nRow] := FindField('DE_SEQ').AsString;
+
+          nRow := nRow + 1;
+          Next;
+        end;
+        if aTopRow <> 0 then
+        begin
+          TopRow := aTopRow;
+        end;
+      end;
+      lb_NotPermitDoorCount.Caption.Text := FormatFloat('#,##0',recordcount);
+
+    end;
+  Finally
+    TempAdoQuery.EnableControls;
+    TempAdoQuery.Free;
+    CoUninitialize;
+  End;
+end;
+
+procedure TfmCardGroupGrade.sg_GroupCodeListClick(Sender: TObject);
+begin
+  inherited;
+  SearchGroupNotGradeDoorList;
+  SearchGroupGradeDoorList;
+
+end;
+
+procedure TfmCardGroupGrade.sg_NotPermitDoorCheckBoxClick(Sender: TObject; ACol,
+  ARow: Integer; State: Boolean);
+begin
+  inherited;
+  if ARow = 0 then //전체선택 또는 해제
+  begin
+    if State then L_nNotPermitDoorCheckCount := (Sender as TAdvStringGrid).RowCount - 1
+    else L_nNotPermitDoorCheckCount := 0;
+    AdvStrinGridSetAllCheck(Sender,State);
+  end else
+  begin
+    if State then L_nNotPermitDoorCheckCount := L_nNotPermitDoorCheckCount + 1
+    else L_nNotPermitDoorCheckCount := L_nNotPermitDoorCheckCount - 1 ;
+  end;
+
+end;
+
+procedure TfmCardGroupGrade.sg_NotPermitDoorResize(Sender: TObject);
+begin
+  inherited;
+  sg_NotPermitDoor.ColWidths[1] := sg_NotPermitDoor.Width - sg_NotPermitDoor.ColWidths[0] - 10;
+end;
+
+procedure TfmCardGroupGrade.sg_PermitDoorCheckBoxClick(Sender: TObject; ACol,
+  ARow: Integer; State: Boolean);
+begin
+  inherited;
+  if ARow = 0 then //전체선택 또는 해제
+  begin
+    if State then L_nPermitDoorCheckCount := (Sender as TAdvStringGrid).RowCount - 1
+    else L_nPermitDoorCheckCount := 0;
+    AdvStrinGridSetAllCheck(Sender,State);
+  end else
+  begin
+    if State then L_nPermitDoorCheckCount := L_nPermitDoorCheckCount + 1
+    else L_nPermitDoorCheckCount := L_nPermitDoorCheckCount - 1 ;
+  end;
+
+end;
+
+procedure TfmCardGroupGrade.sg_PermitDoorResize(Sender: TObject);
+begin
+  inherited;
+  sg_PermitDoor.ColWidths[1] := sg_PermitDoor.Width - sg_PermitDoor.ColWidths[0] - 10;
+end;
+
+procedure TfmCardGroupGrade.tp_GradeResize(Sender: TObject);
+begin
+  inherited;
+  pan_NotPermitDoor.Width := (tp_Grade.Width - pan_PermitAction.Width) div 2;
+
+  sg_NotPermitDoor.Width := pan_NotPermitDoor.Width - (sg_NotPermitDoor.Left * 2);
+  sg_PermitDoor.Width := pan_NotPermitDoor.Width - (sg_PermitDoor.Left * 2);
+
+  sg_NotPermitDoor.Height := pan_NotPermitDoor.Height - pan_NotPermitDoorCount.Height - sg_NotPermitDoor.top - 10;
+  sg_PermitDoor.Height := pan_NotPermitDoor.Height - pan_NotPermitDoorCount.Height - sg_PermitDoor.top - 10;
+
+  sg_NotPermitDoor.ColWidths[1] := sg_NotPermitDoor.Width - sg_NotPermitDoor.ColWidths[0] ;
+  sg_PermitDoor.ColWidths[1] := sg_PermitDoor.Width - sg_PermitDoor.ColWidths[0] ;
+
+  btn_PermitDoorAdd.Top := (pan_PermitAction.Height div 2) - btn_PermitDoorAdd.Height - 5;
+  btn_PermitDoorDelete.Top := (pan_PermitAction.Height div 2) + 5;
+end;
+
+initialization
+  RegisterClass(TfmCardGroupGrade);
+Finalization
+  UnRegisterClass(TfmCardGroupGrade);
+
+end.
